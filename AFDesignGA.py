@@ -104,19 +104,19 @@ class FoilSelectWidget(QtGui.QWidget):
         self.mpw = MatPlotWidget(parent = self.selectpanel)
         self.foilnamelabel = QtGui.QLabel(parent = self.selectpanel)
         self.foilnamelabel.setText(self.mpw.mpl.filename)
-        openbutton = ButtonWidget(parent = self.selectpanel)
+        self.openbutton = ButtonWidget(parent = self.selectpanel)
 
 
         selectpanel_layout = QtGui.QVBoxLayout()
         selectpanel_layout.addWidget(self.mpw)
         selectpanel_layout.addWidget(self.foilnamelabel)
-        selectpanel_layout.addWidget(openbutton)
+        selectpanel_layout.addWidget(self.openbutton)
 
         self.selectpanel.setLayout(selectpanel_layout)
         self.selectpanel.setFixedSize(600,200)
 
-        self.selectpanel.connect(openbutton.openbutton,QtCore.SIGNAL('clicked()'),self.mpw.mpl.update_figure)
-        self.selectpanel.connect(openbutton.openbutton,QtCore.SIGNAL('clicked()'),self.changelabel)
+        self.selectpanel.connect(self.openbutton.openbutton,QtCore.SIGNAL('clicked()'),self.mpw.mpl.update_figure)
+        self.selectpanel.connect(self.openbutton.openbutton,QtCore.SIGNAL('clicked()'),self.changelabel)
 
     def changelabel(self):
         self.foilnamelabel.setText(os.path.basename(self.mpw.mpl.filename))
@@ -140,6 +140,29 @@ class BaseFoilWidget(QtGui.QWidget):
 
         self.basepanel.setLayout(basepanel_layout)
 
+class GeneteticAlgolithm():
+    def __init__(self):
+        print("a")
+
+    def getFoilChord(self,other):
+        self.no1x = other.no1.mpw.mpl.Fx
+        self.no1y = other.no1.mpw.mpl.Fy
+        self.no2x = other.no2.mpw.mpl.Fx
+        self.no2y = other.no2.mpw.mpl.Fy
+        self.no3x = other.no3.mpw.mpl.Fx
+        self.no3y = other.no3.mpw.mpl.Fy
+        self.no4x = other.no4.mpw.mpl.Fx
+        self.no4y = other.no4.mpw.mpl.Fy
+
+
+    def defineFoil(self):
+        self.x = numpy()
+        print(self.x)
+        for i in numpy.arange(1,100):
+            self.x.append(numpy.power(i/100,2))
+        print(self.x)
+
+
 def main():
     qApp = QtGui.QApplication(sys.argv)
     main_window=QtGui.QMainWindow()
@@ -148,6 +171,13 @@ def main():
     main_window.setCentralWidget(basefoilpanel.basepanel)
     main_window.show()
 
+
+    def exeGA():
+        test = GeneteticAlgolithm()
+        test.getFoilChord(basefoilpanel)
+        test.defineFoil()
+
+    basefoilpanel.no1.selectpanel.connect(basefoilpanel.no1.openbutton.openbutton,QtCore.SIGNAL('clicked()'),exeGA)
     sys.exit(qApp.exec_())
 
 if __name__ == '__main__':
