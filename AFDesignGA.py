@@ -169,10 +169,62 @@ class GeneteticAlgolithm():
         no1size = numpy.shape(self.no1x)[0]+1
         buttomy = numpy.flipud(numpy.interp(self.x[:],numpy.flipud(self.no1x[0:self.no1LE]),numpy.flipud(self.no1y[0:self.no1LE])))
         uppery = numpy.interp(self.x[:],self.no1x[self.no1LE-1:no1size],self.no1y[self.no1LE-1:no1size])
-        self.x = numpy.append(numpy.flipud(self.x),numpy.delete(self.x,0))
+        #self.x = numpy.append(numpy.flipud(self.x),numpy.delete(self.x,0))
         self.y = numpy.append(buttomy,numpy.delete(uppery,0))
-        matplotlib.pyplot.plot(self.x,self.y)
+
+        #-----翼型の前縁探索
+        i = int(0)
+
+        while self.no2x[i] > numpy.amin(self.no2x):
+            i += 1
+        self.no2LE = i + 1
+
+        no2size = numpy.shape(self.no2x)[0]+1
+        buttomy = numpy.flipud(numpy.interp(self.x[:],numpy.flipud(self.no2x[0:self.no2LE]),numpy.flipud(self.no2y[0:self.no2LE])))
+        uppery = numpy.interp(self.x[:],self.no2x[self.no2LE-1:no2size],self.no2y[self.no2LE-1:no2size])
+        #self.x = numpy.append(numpy.flipud(self.x),numpy.delete(self.x,0))
+        self.y = numpy.vstack((self.y,numpy.append(buttomy,numpy.delete(uppery,0))))
+
+        #-----翼型の前縁探索
+        i = int(0)
+
+        while self.no3x[i] > numpy.amin(self.no3x):
+            i += 1
+        self.no3LE = i + 1
+
+        no3size = numpy.shape(self.no3x)[0]+1
+        buttomy = numpy.flipud(numpy.interp(self.x[:],numpy.flipud(self.no3x[0:self.no3LE]),numpy.flipud(self.no3y[0:self.no3LE])))
+        uppery = numpy.interp(self.x[:],self.no3x[self.no3LE-1:no3size],self.no3y[self.no3LE-1:no3size])
+        #self.x = numpy.append(numpy.flipud(self.x),numpy.delete(self.x,0))
+        self.y = numpy.vstack((self.y,numpy.append(buttomy,numpy.delete(uppery,0))))
+
+        #-----翼型の前縁探索
+        i = int(0)
+
+        while self.no4x[i] > numpy.amin(self.no4x):
+            i += 1
+        self.no4LE = i + 1
+
+        no4size = numpy.shape(self.no4x)[0]+1
+        buttomy = numpy.flipud(numpy.interp(self.x[:],numpy.flipud(self.no4x[0:self.no4LE]),numpy.flipud(self.no4y[0:self.no4LE])))
+        uppery = numpy.interp(self.x[:],self.no4x[self.no4LE-1:no4size],self.no4y[self.no4LE-1:no4size])
+        self.x = numpy.append(numpy.flipud(self.x),numpy.delete(self.x,0))
+        self.y = numpy.vstack((self.y,numpy.append(buttomy,numpy.delete(uppery,0))))
+
+        matplotlib.pyplot.plot(self.x,self.y[3,:])
         matplotlib.pyplot.show()
+        print("{0:08d}".format(10,'b'))
+        print(int("111111111111",2))
+
+    def default_gene(self):
+        self.parameter10 = [random.randint(0,4095),random.randint(0,4095),random.randint(0,4095),random.randint(0,4095),random.randint(0,4095),random.randint(0,4095),random.randint(0,4095),random.randint(0,4095)]
+        print(self.parameter10)
+        self.gene2 = [0,0,0,0,0,0,0,0]
+        for i in range(8):
+            self.gene2[i] = str(bin(self.parameter10[i]))[2:].zfill(12)
+
+
+        print(int(self.gene2[1],2))
 
 
 
@@ -188,10 +240,12 @@ def main():
 
     def exeGA():
         test = GeneteticAlgolithm()
-        test.getFoilChord(basefoilpanel)
-        test.defineFoil()
+        #test.getFoilChord(basefoilpanel)
+        #test.defineFoil()
+        test.default_gene()
 
-    basefoilpanel.no1.selectpanel.connect(basefoilpanel.no1.openbutton.openbutton,QtCore.SIGNAL('clicked()'),exeGA)
+
+    basefoilpanel.no4.selectpanel.connect(basefoilpanel.no4.openbutton.openbutton,QtCore.SIGNAL('clicked()'),exeGA)
     sys.exit(qApp.exec_())
 
 if __name__ == '__main__':
