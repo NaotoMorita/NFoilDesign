@@ -113,7 +113,7 @@ class FoilSelectWidget(QtGui.QWidget):
         selectpanel_layout.addWidget(self.openbutton)
 
         self.selectpanel.setLayout(selectpanel_layout)
-        self.selectpanel.setFixedSize(600,200)
+        #self.selectpanel.setFixedSize(600,200)
 
         self.selectpanel.connect(self.openbutton.openbutton,QtCore.SIGNAL('clicked()'),self.mpw.mpl.update_figure)
         self.selectpanel.connect(self.openbutton.openbutton,QtCore.SIGNAL('clicked()'),self.changelabel)
@@ -159,7 +159,7 @@ class GeneteticAlgolithm():
         self.no = numpy.arange(0,101)
         self.x = self.no * self.no / 10000
 
-        #-----翼型の前縁探索
+        #-----鄙ｼ蝙九・蜑咲ｸ∵爾邏｢
         i = int(0)
 
         while self.no1x[i] > numpy.amin(self.no1x):
@@ -172,7 +172,7 @@ class GeneteticAlgolithm():
         #self.x = numpy.append(numpy.flipud(self.x),numpy.delete(self.x,0))
         self.y = numpy.append(buttomy,numpy.delete(uppery,0))
 
-        #-----翼型の前縁探索
+        #-----鄙ｼ蝙九・蜑咲ｸ∵爾邏｢
         i = int(0)
 
         while self.no2x[i] > numpy.amin(self.no2x):
@@ -185,7 +185,7 @@ class GeneteticAlgolithm():
         #self.x = numpy.append(numpy.flipud(self.x),numpy.delete(self.x,0))
         self.y = numpy.vstack((self.y,numpy.append(buttomy,numpy.delete(uppery,0))))
 
-        #-----翼型の前縁探索
+        #-----鄙ｼ蝙九・蜑咲ｸ∵爾邏｢
         i = int(0)
 
         while self.no3x[i] > numpy.amin(self.no3x):
@@ -198,7 +198,7 @@ class GeneteticAlgolithm():
         #self.x = numpy.append(numpy.flipud(self.x),numpy.delete(self.x,0))
         self.y = numpy.vstack((self.y,numpy.append(buttomy,numpy.delete(uppery,0))))
 
-        #-----翼型の前縁探索
+        #-----鄙ｼ蝙九・蜑咲ｸ∵爾邏｢
         i = int(0)
 
         while self.no4x[i] > numpy.amin(self.no4x):
@@ -213,18 +213,18 @@ class GeneteticAlgolithm():
 
         matplotlib.pyplot.plot(self.x,self.y[3,:])
         matplotlib.pyplot.show()
-        print("{0:08d}".format(10,'b'))
-        print(int("111111111111",2))
 
     def default_gene(self):
-        self.parameter10 = [random.randint(0,4095),random.randint(0,4095),random.randint(0,4095),random.randint(0,4095),random.randint(0,4095),random.randint(0,4095),random.randint(0,4095),random.randint(0,4095)]
-        print(self.parameter10)
-        self.gene2 = [0,0,0,0,0,0,0,0]
-        for i in range(8):
-            self.gene2[i] = str(bin(self.parameter10[i]))[2:].zfill(12)
+        n_sample=100
+        self.parameter10 = [0]*n_sample
+        self.gene2 = [0]*n_sample
 
+        for n in range(n_sample):
+            self.parameter10[n] = [random.randint(0,4095),random.randint(0,4095),random.randint(0,4095),random.randint(0,4095),random.randint(0,4095),random.randint(0,4095),random.randint(0,4095),random.randint(0,4095)]
+            self.gene2[n] = [0,0,0,0,0,0,0,0]
+            for i in range(8):
+                self.gene2[n][i] = str(bin(self.parameter10[0][i]))[2:].zfill(12)
 
-        print(int(self.gene2[1],2))
 
 
 
