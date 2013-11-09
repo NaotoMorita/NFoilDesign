@@ -1,4 +1,4 @@
-#-------------------------------------------------------------------------------
+﻿#-------------------------------------------------------------------------------
 # Name:AFDesginGA(airFoil Design with Optimizing Methods)
 # Purpose:AirFoil Design
 #
@@ -159,7 +159,7 @@ class GeneteticAlgolithm():
         self.no = numpy.arange(0,101)
         self.x = self.no * self.no / 10000
 
-        #-----鄙ｼ蝙九・蜑咲ｸ∵爾邏｢
+        #-----finding foil Leading Edge テスト
         i = int(0)
 
         while self.no1x[i] > numpy.amin(self.no1x):
@@ -172,7 +172,7 @@ class GeneteticAlgolithm():
         #self.x = numpy.append(numpy.flipud(self.x),numpy.delete(self.x,0))
         self.y = numpy.append(buttomy,numpy.delete(uppery,0))
 
-        #-----鄙ｼ蝙九・蜑咲ｸ∵爾邏｢
+        #-----finding foil Leading Edge
         i = int(0)
 
         while self.no2x[i] > numpy.amin(self.no2x):
@@ -185,7 +185,7 @@ class GeneteticAlgolithm():
         #self.x = numpy.append(numpy.flipud(self.x),numpy.delete(self.x,0))
         self.y = numpy.vstack((self.y,numpy.append(buttomy,numpy.delete(uppery,0))))
 
-        #-----鄙ｼ蝙九・蜑咲ｸ∵爾邏｢
+        #-----finding foil Leading Edge
         i = int(0)
 
         while self.no3x[i] > numpy.amin(self.no3x):
@@ -198,7 +198,7 @@ class GeneteticAlgolithm():
         #self.x = numpy.append(numpy.flipud(self.x),numpy.delete(self.x,0))
         self.y = numpy.vstack((self.y,numpy.append(buttomy,numpy.delete(uppery,0))))
 
-        #-----鄙ｼ蝙九・蜑咲ｸ∵爾邏｢
+        #-----finding foil Leading Edge
         i = int(0)
 
         while self.no4x[i] > numpy.amin(self.no4x):
