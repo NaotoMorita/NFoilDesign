@@ -156,11 +156,25 @@ class GeneteticAlgolithm():
 
 
     def defineFoil(self):
-        self.x = numpy()
-        print(self.x)
-        for i in numpy.arange(1,100):
-            self.x.append(numpy.power(i/100,2))
-        print(self.x)
+        self.no = numpy.arange(0,101)
+        self.x = self.no * self.no / 10000
+
+        #-----翼型の前縁探索
+        i = int(0)
+
+        while self.no1x[i] > numpy.amin(self.no1x):
+            i += 1
+        self.no1LE = i + 1
+
+        no1size = numpy.shape(self.no1x)[0]+1
+        buttomy = numpy.flipud(numpy.interp(self.x[:],numpy.flipud(self.no1x[0:self.no1LE]),numpy.flipud(self.no1y[0:self.no1LE])))
+        uppery = numpy.interp(self.x[:],self.no1x[self.no1LE-1:no1size],self.no1y[self.no1LE-1:no1size])
+        self.x = numpy.append(numpy.flipud(self.x),numpy.delete(self.x,0))
+        self.y = numpy.append(buttomy,numpy.delete(uppery,0))
+        matplotlib.pyplot.plot(self.x,self.y)
+        matplotlib.pyplot.show()
+
+
 
 
 def main():
