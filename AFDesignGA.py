@@ -211,11 +211,9 @@ class GeneteticAlgolithm():
         self.x = numpy.append(numpy.flipud(self.x),numpy.delete(self.x,0))
         self.y = numpy.vstack((self.y,numpy.append(buttomy,numpy.delete(uppery,0))))
 
-        matplotlib.pyplot.plot(self.x,self.y[3,:])
-        matplotlib.pyplot.show()
 
     def default_gene(self):
-        n_sample=100
+
         self.parameter10 = [0]*n_sample
         self.gene2 = [0]*n_sample
 
@@ -223,7 +221,61 @@ class GeneteticAlgolithm():
             self.parameter10[n] = [random.randint(0,4095),random.randint(0,4095),random.randint(0,4095),random.randint(0,4095),random.randint(0,4095),random.randint(0,4095),random.randint(0,4095),random.randint(0,4095)]
             self.gene2[n] = [0,0,0,0,0,0,0,0]
             for i in range(8):
-                self.gene2[n][i] = str(bin(self.parameter10[0][i]))[2:].zfill(12)
+                self.gene2[n][i] = str(bin(self.parameter10[n][i]))[2:].zfill(12)
+
+    def gene2coeficient(self):
+        self.coeficient_ratio = [0]*n_sample
+        self.coeficient = [0]*n_sample
+        for n in range(n_sample):
+            self.coeficient_ratio[n] = [0,0,0,0,0,0,0,0]
+            self.coeficient[n] = [0,0,0,0,0,0,0,0]
+            for i in range(8):
+                self.coeficient_ratio[n][i] = int(self.gene2[n][i],2) / 4095
+
+            self.coeficient[n][0] = 2*self.coeficient_ratio[n][0]-1
+            self.coeficient[n][1] = 2*self.coeficient_ratio[n][1]-1
+            self.coeficient[n][2] = 2*self.coeficient_ratio[n][2]-1
+            self.coeficient[n][3] = 2*self.coeficient_ratio[n][3]-1
+            self.coeficient[n][4] = 0.04*self.coeficient_ratio[n][4]-0.02  #zc
+            self.coeficient[n][5] = 0.25*self.coeficient_ratio[n][5]+0.25  #xc
+            self.coeficient[n][6] = 6*self.coeficient_ratio[n][6]-3        #alphaTE
+            self.coeficient[n][7] = 1.4*self.coeficient_ratio[n][7]+0.6    #Amplifying coeficient
+
+
+
+    def coeficient2foil(self):
+        #-----make add-camberline
+        for n in range(n_sample):
+            xc = self.coeficient[n][5]
+            zc = self.coeficient[n][4]
+            alphaTE = self.coeficient[n][6]
+
+            c_mat = numpy.arange(0, 4 * 4).reshape(4, 4) + numpy.identity(4)
+            cu_vector = numpy.array([[zc],[0.0],[0.0],[scipy.tan(alphaTE * scipy.pi/180)]])
+            for m in range(4):
+                c_mat[0,m] = xc**(m+1)
+                c_mat[1,m] = xc**(m) * (m+1)
+                c_mat[2,m] = 1.0
+                c_mat[3,m] = m+1.0
+            camber_coeficient =numpy.linalg.solve(c_mat,cu_vector)
+            addcamber = camber_coeficient[0] * self.x + camber_coeficient[1] * self.x**2 + camber_coeficient[2] * self.x**3 + camber_coeficient[3] * self.x ** 4
+
+
+            if n == 0:
+                self.y_GA =( self.y[0,:] * self.coeficient[n][0] + self.y[1,:] * self.coeficient[n][1] + self.y[2,:] * self.coeficient[n][2] + self.y[3,:] * self.coeficient[n][3] + addcamber) * self.coeficient[n][7]
+            else:
+                buff =( self.y[0,:] * self.coeficient[n][0] + self.y[1,:] * self.coeficient[n][1] + self.y[2,:] * self.coeficient[n][2] + self.y[3,:] * self.coeficient[n][3] + addcamber) * self.coeficient[n][7]
+                self.y_GA = numpy.vstack((self.y_GA,buff))
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -237,12 +289,15 @@ def main():
     main_window.setCentralWidget(basefoilpanel.basepanel)
     main_window.show()
 
-
+    global n_sample
+    n_sample = 100
     def exeGA():
         test = GeneteticAlgolithm()
-        #test.getFoilChord(basefoilpanel)
-        #test.defineFoil()
+        test.getFoilChord(basefoilpanel)
+        test.defineFoil()
         test.default_gene()
+        test.gene2coeficient()
+        test.coeficient2foil()
 
 
     basefoilpanel.no4.selectpanel.connect(basefoilpanel.no4.openbutton.openbutton,QtCore.SIGNAL('clicked()'),exeGA)
