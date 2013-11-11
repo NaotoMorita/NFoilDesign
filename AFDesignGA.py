@@ -29,6 +29,10 @@ import PyQt4.QtGui
 import matplotlib.backends.backend_qt4agg
 import matplotlib.backends.backend_agg
 
+#import to exe XFoil
+import subprocess
+import shutil
+
 progname = os.path.basename(sys.argv[0])
 progversion = "0.1"
 
@@ -142,7 +146,7 @@ class BaseFoilWidget(QtGui.QWidget):
 
 class GeneteticAlgolithm():
     def __init__(self):
-        print("a")
+        print("Genetic Algorithm")
 
     def getFoilChord(self,other):
         self.no1x = other.no1.mpw.mpl.Fx
@@ -267,18 +271,22 @@ class GeneteticAlgolithm():
                 buff =( self.y[0,:] * self.coeficient[n][0] + self.y[1,:] * self.coeficient[n][1] + self.y[2,:] * self.coeficient[n][2] + self.y[3,:] * self.coeficient[n][3] + addcamber) * self.coeficient[n][7]
                 self.y_GA = numpy.vstack((self.y_GA,buff))
 
+    def exeXFoil(self):
+        #----execute CFoil
+        fname = "a0_pwrt.dat"
+        alpha = 4
+        Re = 450000
+        foil = "dae31.dat"
+        ps = subprocess.Popen(['xfoil.exe'],stdin=subprocess.PIPE,stdout=None,stderr=None)
+        pipe = bytes("plop\n g\n\n load {load} \n oper\n visc {Re} \n iter 500\n pacc\n {filename} \n \n alfa{alpha}\n \n quit\n".format(load=foil,Re=Re,filename=fname,alpha=alpha),"ascii")
+        res = ps.communicate(pipe)
 
+        #----read XFoil Poler
+        lines = numpy.loadtxt(fname,skiprows=12)
+        if len(lines.shape)==2:
+            lines = lines[-1,:]
 
-
-
-
-
-
-
-
-
-
-
+        print(lines)
 
 
 def main():
