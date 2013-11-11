@@ -89,7 +89,7 @@ class MatPlotWidget(QtGui.QWidget):
 
 
 class ButtonWidget(QtGui.QWidget):
-    def __init__(self,parent = None, Fx = numpy.array([[0],[0]]), Fy = numpy.array([[0],[0]])):
+    def __init__(self,parent = None,):
         QtGui.QWidget.__init__(self, parent = parent)
         self.openbutton = QtGui.QPushButton("OPEN Selig-Formated Foil",parent = self)
 
@@ -108,6 +108,7 @@ def main():
     foillabel = QtGui.QLabel(parent = panel)
     foillabel.setText(mpw.mpl.filename)
     button_panel = ButtonWidget(parent = panel)
+    input_widget = InputWidget()
 
     panel_layout = QtGui.QVBoxLayout()
     panel_layout.addWidget(mpw)
@@ -115,6 +116,7 @@ def main():
     panel_layout.addWidget(button_panel)
     panel.setLayout(panel_layout)
     panel.setFixedSize(600,200)
+
 
     def changelabel():
         foillabel.setText(mpw.mpl.filename)

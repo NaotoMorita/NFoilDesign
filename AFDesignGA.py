@@ -117,7 +117,7 @@ class FoilSelectWidget(QtGui.QWidget):
         selectpanel_layout.addWidget(self.openbutton)
 
         self.selectpanel.setLayout(selectpanel_layout)
-        #self.selectpanel.setFixedSize(600,200)
+        self.selectpanel.setFixedSize(500,200)
 
         self.selectpanel.connect(self.openbutton.openbutton,QtCore.SIGNAL('clicked()'),self.mpw.mpl.update_figure)
         self.selectpanel.connect(self.openbutton.openbutton,QtCore.SIGNAL('clicked()'),self.changelabel)
@@ -274,8 +274,6 @@ class GeneteticAlgolithm():
     def exeXFoil(self):
         #----execute CFoil
         fname = "a0_pwrt.dat"
-        alpha = 4
-        Re = 450000
         foil = "dae31.dat"
         ps = subprocess.Popen(['xfoil.exe'],stdin=subprocess.PIPE,stdout=None,stderr=None)
         pipe = bytes("plop\n g\n\n load {load} \n oper\n visc {Re} \n iter 500\n pacc\n {filename} \n \n alfa{alpha}\n \n quit\n".format(load=foil,Re=Re,filename=fname,alpha=alpha),"ascii")
@@ -285,30 +283,98 @@ class GeneteticAlgolithm():
         lines = numpy.loadtxt(fname,skiprows=12)
         if len(lines.shape)==2:
             lines = lines[-1,:]
+        os.remove(fname)
 
         print(lines)
+
+class InputWidget(QtGui.QWidget):
+    def __init__(self,parent = None,):
+        QtGui.QWidget.__init__(self, parent = parent)
+        self.inputalpha = QtGui.QLineEdit(parent = self)
+        self.inputalpha.setFixedWidth(35)
+        self.label_alpha = QtGui.QLabel(parent = self)
+        self.label_alpha.setText("Alpha (deg):")
+
+        self.inputRe = QtGui.QLineEdit(parent = self)
+        self.inputRe.setFixedWidth(50)
+        self.label_Re = QtGui.QLabel(parent = self)
+        self.label_Re.setText("  Reynolds No.:")
+
+        self.inputthn = QtGui.QLineEdit(parent = self)
+        self.inputthn.setFixedWidth(30)
+        self.label_thn = QtGui.QLabel(parent = self)
+        self.label_thn.setText("  Thickness (%):")
+
+        self.inputthnpos = QtGui.QLineEdit(parent = self)
+        self.inputthnpos.setFixedWidth(30)
+        self.label_thnpos = QtGui.QLabel(parent = self)
+        self.label_thnpos.setText("  Spar Position (%):")
+
+        self.execute_button = QtGui.QPushButton("EXECUTION",parent=self)
+        self.stop_button = QtGui.QPushButton("STOP",parent=self)
+
+        layout_inputwidget = QtGui.QHBoxLayout()
+        layout_inputwidget.addWidget(self.label_alpha)
+        layout_inputwidget.addWidget(self.inputalpha)
+        layout_inputwidget.addWidget(self.label_Re)
+        layout_inputwidget.addWidget(self.inputRe)
+        layout_inputwidget.addWidget(self.label_thn)
+        layout_inputwidget.addWidget(self.inputthn)
+        layout_inputwidget.addWidget(self.label_thnpos)
+        layout_inputwidget.addWidget(self.inputthnpos)
+        layout_inputwidget.addWidget(self.execute_button)
+        layout_inputwidget.addWidget(self.stop_button)
+
+
+        self.setLayout(layout_inputwidget)
+
+    def outputparameter(self):
+        global alpha
+        alpha = float(self.inputalpha.text())
+        global Re
+        Re = float(self.inputRe.text())
+        global thn
+        thn = float(self.inputthn.text())/100
+        global thnpos
+        thnpos = float(self.inputthnpos.text())/100
+
+
 
 
 def main():
     qApp = QtGui.QApplication(sys.argv)
     main_window=QtGui.QMainWindow()
 
-    basefoilpanel = BaseFoilWidget()
-    main_window.setCentralWidget(basefoilpanel.basepanel)
+
+    main_panel = QtGui.QWidget()
+
+    basefoilpanel = BaseFoilWidget(parent = main_panel)
+    input_widget = InputWidget(parent = main_panel)
+
+    main_panel_layout = QtGui.QHBoxLayout()
+    main_panel_layout.addWidget(input_widget)
+    main_panel_layout.addWidget(basefoilpanel.basepanel)
+    main_panel.setLayout(main_panel_layout)
+
+    main_window.setCentralWidget(main_panel)
     main_window.show()
 
     global n_sample
     n_sample = 100
     def exeGA():
+        input_widget.outputparameter()
         test = GeneteticAlgolithm()
         test.getFoilChord(basefoilpanel)
         test.defineFoil()
         test.default_gene()
         test.gene2coeficient()
         test.coeficient2foil()
+        test.exeXFoil()
 
 
-    basefoilpanel.no4.selectpanel.connect(basefoilpanel.no4.openbutton.openbutton,QtCore.SIGNAL('clicked()'),exeGA)
+    input_widget.connect(input_widget.execute_button,QtCore.SIGNAL('clicked()'),exeGA)
+
+
     sys.exit(qApp.exec_())
 
 if __name__ == '__main__':
