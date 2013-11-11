@@ -73,7 +73,9 @@ class FoilPlot(Matplot):
         self.load()
         self.axes.plot(self.Fx, self.Fy)
         self.draw()
-
+        global foilopenconfirm
+        foilopenconfirm += 1
+        print(foilopenconfirm)
 
     def load(self):
         self.filename = QtGui.QFileDialog.getOpenFileName()
@@ -362,14 +364,18 @@ def main():
     global n_sample
     n_sample = 100
     def exeGA():
-        input_widget.outputparameter()
-        test = GeneteticAlgolithm()
-        test.getFoilChord(basefoilpanel)
-        test.defineFoil()
-        test.default_gene()
-        test.gene2coeficient()
-        test.coeficient2foil()
-        test.exeXFoil()
+        if foilopenconfirm >= 4:
+            input_widget.outputparameter()
+            test = GeneteticAlgolithm()
+            test.getFoilChord(basefoilpanel)
+            test.defineFoil()
+            test.default_gene()
+            test.gene2coeficient()
+            test.coeficient2foil()
+            test.exeXFoil()
+
+    global foilopenconfirm
+    foilopenconfirm =0
 
 
     input_widget.connect(input_widget.execute_button,QtCore.SIGNAL('clicked()'),exeGA)
