@@ -108,7 +108,6 @@ def main():
     foillabel = QtGui.QLabel(parent = panel)
     foillabel.setText(mpw.mpl.filename)
     button_panel = ButtonWidget(parent = panel)
-    input_widget = InputWidget()
 
     panel_layout = QtGui.QVBoxLayout()
     panel_layout.addWidget(mpw)

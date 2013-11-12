@@ -40,6 +40,8 @@ class Matplot(matplotlib.backends.backend_qt4agg.FigureCanvasQTAgg):
     def __init__(self, parent=None, width=6, height=3, dpi=50, Fx = numpy.array([[0],[0]]), Fy = numpy.array([[0],[0]])):
         self.Fx = numpy.array(Fx)
         self.Fy = numpy.array(Fy)
+        self.datax = 0
+        self.datay = 0
 
         fig = matplotlib.figure.Figure(figsize=(width, height), dpi=dpi)
         self.axes = fig.add_subplot(111)
@@ -67,7 +69,7 @@ class FoilPlot(Matplot):
 
     def compute_initial_figure(self):
         self.filename = "None"
-        self.axes.plot(self.Fx, self.Fy)
+        #self.axes.plot(self.Fx, self.Fy)
 
     def update_figure(self):
         self.load()
@@ -77,11 +79,73 @@ class FoilPlot(Matplot):
         foilopenconfirm += 1
         print(foilopenconfirm)
 
+    def update_figure2(self):
+        self.axes.plot(self.Fx, self.Fy)
+        self.draw()
+
     def load(self):
         self.filename = QtGui.QFileDialog.getOpenFileName()
         foil = numpy.loadtxt(self.filename,skiprows=1)
         self.Fx = foil[:,0]
         self.Fy = foil[:,1]
+
+class DataPlot(Matplot):
+    """A canvas that updates itself every second with a new plot."""
+    def __init__(self, *args, **kwargs):
+        Matplot.__init__(self, *args, **kwargs)
+
+    def compute_initial_figure(self):
+        self.filename = "None"
+        self.axes.set_aspect("auto")
+
+
+    def update_figure(self):
+        self.axes.plot(self.datax, self.datay,marker='o',linewidth=0)
+        self.axes.set_aspect("auto")
+        self.draw()
+
+
+
+class CalclatedFoilWidget(QtGui.QWidget):
+    def __init__(self,ga,foilno = 0,parent = None):
+        QtGui.QWidget.__init__(self, parent = parent)
+
+        self.itgcfw = QtGui.QWidget(parent = self)
+        self.itgcfw.setFixedSize(800,300)
+
+
+        self.cfw = FoilPlot(parent = self.itgcfw)
+        self.cfw.Fx = ga.x
+        self.cfw.Fy = ga.y_GA[foilno,:]
+        print(self.cfw.Fx)
+        self.cfw.compute_initial_figure()
+
+        self.datapanel = QtGui.QWidget(parent = self.itgcfw)
+        self.CLlabel = QtGui.QLabel()
+        self.CLlabel.setText("CL:{CL}".format(CL = ga.CL))
+
+        self.outputbutton = QtGui.QPushButton("EXPORT FOIL",parent = self.datapanel)
+
+        datapanel_layout = QtGui.QHBoxLayout()
+        datapanel_layout.addWidget(self.CLlabel)
+        datapanel_layout.addWidget(self.outputbutton)
+        self.datapanel.setLayout(datapanel_layout)
+
+        itgcfw_layout = QtGui.QVBoxLayout()
+        itgcfw_layout.addWidget(self.cfw)
+        itgcfw_layout.addWidget(self.datapanel)
+        self.itgcfw.setLayout(itgcfw_layout)
+
+
+
+    def replot(self,ga,foilno = 0):
+        self.cfw.Fx = ga.x
+        self.cfw.Fy = ga.y_GA[foilno]
+        self.cfw.update_figure2()
+        self.CLlabel.setText("CL:{CL}".format(CL = ga.CL))
+
+
+
 
 class MatPlotWidget(QtGui.QWidget):
     def __init__(self,parent = None):
@@ -148,7 +212,13 @@ class BaseFoilWidget(QtGui.QWidget):
 
 class GeneteticAlgolithm():
     def __init__(self):
-        print("Genetic Algorithm")
+        if "self.x" in locals():
+            pass
+        else:
+            self.x = 0
+            self.y_GA = numpy.array([[0],[0]])
+            self.CL = 0
+            print("Genetic Algorithm")
 
     def getFoilChord(self,other):
         self.no1x = other.no1.mpw.mpl.Fx
@@ -288,14 +358,19 @@ class GeneteticAlgolithm():
         os.remove(fname)
 
         print(lines)
+        self.CL = lines[1]
+
+        print(self.CL)
 
 class InputWidget(QtGui.QWidget):
     def __init__(self,parent = None,):
         QtGui.QWidget.__init__(self, parent = parent)
         self.inputalpha = QtGui.QLineEdit(parent = self)
         self.inputalpha.setFixedWidth(35)
+        self.inputalpha.Normal = 4
         self.label_alpha = QtGui.QLabel(parent = self)
         self.label_alpha.setText("Alpha (deg):")
+
 
         self.inputRe = QtGui.QLineEdit(parent = self)
         self.inputRe.setFixedWidth(50)
@@ -351,10 +426,19 @@ def main():
     main_panel = QtGui.QWidget()
 
     basefoilpanel = BaseFoilWidget(parent = main_panel)
-    input_widget = InputWidget(parent = main_panel)
+
+    input_data_panel = QtGui.QWidget()
+
+    input_widget = InputWidget(parent = input_data_panel)
+    test = GeneteticAlgolithm()
+    cfoil_widget = CalclatedFoilWidget(test,0,parent = input_data_panel)
+    input_data_panel_layput = QtGui.QVBoxLayout()
+    input_data_panel_layput.addWidget(input_widget)
+    input_data_panel_layput.addWidget(cfoil_widget.itgcfw)
+    input_data_panel.setLayout(input_data_panel_layput)
 
     main_panel_layout = QtGui.QHBoxLayout()
-    main_panel_layout.addWidget(input_widget)
+    main_panel_layout.addWidget(input_data_panel)
     main_panel_layout.addWidget(basefoilpanel.basepanel)
     main_panel.setLayout(main_panel_layout)
 
@@ -366,13 +450,14 @@ def main():
     def exeGA():
         if foilopenconfirm >= 4:
             input_widget.outputparameter()
-            test = GeneteticAlgolithm()
+
             test.getFoilChord(basefoilpanel)
             test.defineFoil()
             test.default_gene()
             test.gene2coeficient()
             test.coeficient2foil()
             test.exeXFoil()
+            cfoil_widget.replot(test,0)
 
     global foilopenconfirm
     foilopenconfirm =0
