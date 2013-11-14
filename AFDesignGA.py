@@ -182,7 +182,7 @@ class CalclatedFoilWidget(QtGui.QWidget):
 
         self.datapanel = QtGui.QWidget(parent = self.itgcfw)
         self.CLlabel = QtGui.QLabel()
-        self.CLlabel.setText("CL : {CL} Cd : {Cd} CL/Cd : {CLCd} Thickness : {thn:4}".format(CL = ga.CL, Cd = ga.Cd * 10000, CLCd = ga.CL/ga.Cd, thn = ga.thn * 100))
+        self.CLlabel.setText("CL : {CL} Cd(count) : {Cd} CL/Cd : {CLCd} Thickness : {thn:4}".format(CL = ga.CL, Cd = ga.Cd * 10000, CLCd = ga.CL/ga.Cd, thn = ga.thn * 100))
 
         self.outputbutton = QtGui.QPushButton("EXPORT FOIL",parent = self.datapanel)
 
@@ -520,7 +520,6 @@ def main():
 
     global foilopenconfirm
     foilopenconfirm =0
-
 
     input_widget.connect(input_widget.execute_button,QtCore.SIGNAL('clicked()'),exeGA)
 
