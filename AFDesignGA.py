@@ -77,7 +77,6 @@ class FoilPlot(Matplot):
         self.draw()
         global foilopenconfirm
         foilopenconfirm += 1
-        print(foilopenconfirm)
 
     def update_figure2(self):
         self.axes.plot(self.Fx, self.Fy)
@@ -103,49 +102,6 @@ class DataPlot(Matplot):
         self.axes.plot(self.datax, self.datay,marker='o',linewidth=0)
         self.axes.set_aspect("auto")
         self.draw()
-
-
-
-class CalclatedFoilWidget(QtGui.QWidget):
-    def __init__(self,ga,foilno = 0,parent = None):
-        QtGui.QWidget.__init__(self, parent = parent)
-
-        self.itgcfw = QtGui.QWidget(parent = self)
-        self.itgcfw.setFixedSize(800,300)
-
-
-        self.cfw = FoilPlot(parent = self.itgcfw)
-        self.cfw.Fx = ga.x
-        self.cfw.Fy = ga.y_GA[foilno,:]
-        print(self.cfw.Fx)
-        self.cfw.compute_initial_figure()
-
-        self.datapanel = QtGui.QWidget(parent = self.itgcfw)
-        self.CLlabel = QtGui.QLabel()
-        self.CLlabel.setText("CL:{CL}".format(CL = ga.CL))
-
-        self.outputbutton = QtGui.QPushButton("EXPORT FOIL",parent = self.datapanel)
-
-        datapanel_layout = QtGui.QHBoxLayout()
-        datapanel_layout.addWidget(self.CLlabel)
-        datapanel_layout.addWidget(self.outputbutton)
-        self.datapanel.setLayout(datapanel_layout)
-
-        itgcfw_layout = QtGui.QVBoxLayout()
-        itgcfw_layout.addWidget(self.cfw)
-        itgcfw_layout.addWidget(self.datapanel)
-        self.itgcfw.setLayout(itgcfw_layout)
-
-
-
-    def replot(self,ga,foilno = 0):
-        self.cfw.Fx = ga.x
-        self.cfw.Fy = ga.y_GA[foilno]
-        self.cfw.update_figure2()
-        self.CLlabel.setText("CL:{CL}".format(CL = ga.CL))
-
-
-
 
 class MatPlotWidget(QtGui.QWidget):
     def __init__(self,parent = None):
@@ -210,6 +166,109 @@ class BaseFoilWidget(QtGui.QWidget):
 
         self.basepanel.setLayout(basepanel_layout)
 
+
+class CalclatedFoilWidget(QtGui.QWidget):
+    def __init__(self,ga,foilno = 0,parent = None):
+        QtGui.QWidget.__init__(self, parent = parent)
+
+        self.itgcfw = QtGui.QWidget(parent = self)
+        self.itgcfw.setFixedSize(800,300)
+
+
+        self.cfw = FoilPlot(parent = self.itgcfw)
+        self.cfw.Fx = ga.x
+        self.cfw.Fy = ga.y_GA[foilno,:]
+        self.cfw.compute_initial_figure()
+
+        self.datapanel = QtGui.QWidget(parent = self.itgcfw)
+        self.CLlabel = QtGui.QLabel()
+        self.CLlabel.setText("CL : {CL} Cd : {Cd} CL/Cd : {CLCd} Thickness : {thn:4}".format(CL = ga.CL, Cd = ga.Cd * 10000, CLCd = ga.CL/ga.Cd, thn = ga.thn * 100))
+
+        self.outputbutton = QtGui.QPushButton("EXPORT FOIL",parent = self.datapanel)
+
+        datapanel_layout = QtGui.QHBoxLayout()
+        datapanel_layout.addWidget(self.CLlabel)
+        datapanel_layout.addWidget(self.outputbutton)
+        self.datapanel.setLayout(datapanel_layout)
+
+        itgcfw_layout = QtGui.QVBoxLayout()
+        itgcfw_layout.addWidget(self.cfw)
+        itgcfw_layout.addWidget(self.datapanel)
+        self.itgcfw.setLayout(itgcfw_layout)
+
+
+
+    def replot(self,ga,foilno = 0):
+        self.cfw.Fx = ga.x
+        self.cfw.Fy = ga.y_GA[foilno]
+        self.cfw.update_figure2()
+        self.CLlabel.setText("CL : {CL:5} Cd : {Cd:4} CL/Cd : {CLCd:4} Thickness : {thn:4}".format(CL = ga.CL, Cd = ga.Cd * 10000, CLCd = ga.CL/ga.Cd, thn = ga.thn * 100))
+
+class InputWidget(QtGui.QWidget):
+    def __init__(self,parent = None,):
+        QtGui.QWidget.__init__(self, parent = parent)
+        self.inputalpha = QtGui.QLineEdit(parent = self)
+        self.inputalpha.setFixedWidth(35)
+        self.inputalpha.Normal = 4
+        self.label_alpha = QtGui.QLabel(parent = self)
+        self.label_alpha.setText("Alpha (deg):")
+
+
+        self.inputRe = QtGui.QLineEdit(parent = self)
+        self.inputRe.setFixedWidth(50)
+        self.label_Re = QtGui.QLabel(parent = self)
+        self.label_Re.setText("  Reynolds No.:")
+
+        self.inputCL = QtGui.QLineEdit(parent = self)
+        self.inputCL.setFixedWidth(30)
+        self.label_CL = QtGui.QLabel(parent = self)
+        self.label_CL.setText("  CL :")
+
+        self.inputthn = QtGui.QLineEdit(parent = self)
+        self.inputthn.setFixedWidth(30)
+        self.label_thn = QtGui.QLabel(parent = self)
+        self.label_thn.setText("  Thickness (%):")
+
+        self.inputthnpos = QtGui.QLineEdit(parent = self)
+        self.inputthnpos.setFixedWidth(30)
+        self.label_thnpos = QtGui.QLabel(parent = self)
+        self.label_thnpos.setText("  Spar Position (%):")
+
+        self.execute_button = QtGui.QPushButton("EXECUTION",parent=self)
+        self.stop_button = QtGui.QPushButton("STOP",parent=self)
+
+        layout_inputwidget = QtGui.QHBoxLayout()
+        layout_inputwidget.addWidget(self.label_alpha)
+        layout_inputwidget.addWidget(self.inputalpha)
+        layout_inputwidget.addWidget(self.label_Re)
+        layout_inputwidget.addWidget(self.inputRe)
+        layout_inputwidget.addWidget(self.label_CL)
+        layout_inputwidget.addWidget(self.inputCL)
+        layout_inputwidget.addWidget(self.label_thn)
+        layout_inputwidget.addWidget(self.inputthn)
+        layout_inputwidget.addWidget(self.label_thnpos)
+        layout_inputwidget.addWidget(self.inputthnpos)
+        layout_inputwidget.addWidget(self.execute_button)
+        layout_inputwidget.addWidget(self.stop_button)
+
+
+        self.setLayout(layout_inputwidget)
+
+    def outputparameter(self):
+        global alpha
+        alpha = float(self.inputalpha.text())
+        global Re
+        Re = float(self.inputRe.text())
+        global CL
+        CL = float(self.inputCL.text())
+        global thn
+        thn = float(self.inputthn.text())/100
+        global thnpos
+        thnpos = float(self.inputthnpos.text())/100
+
+
+
+
 class GeneteticAlgolithm():
     def __init__(self):
         if "self.x" in locals():
@@ -218,7 +277,9 @@ class GeneteticAlgolithm():
             self.x = 0
             self.y_GA = numpy.array([[0],[0]])
             self.CL = 0
-            print("Genetic Algorithm")
+            self.Cd = 100
+            self.Cm = 0
+            self.thn = 0
 
     def getFoilChord(self,other):
         self.no1x = other.no1.mpw.mpl.Fx
@@ -287,6 +348,9 @@ class GeneteticAlgolithm():
         self.x = numpy.append(numpy.flipud(self.x),numpy.delete(self.x,0))
         self.y = numpy.vstack((self.y,numpy.append(buttomy,numpy.delete(uppery,0))))
 
+        for i in range(4):
+            if max(self.y[i,0:99])>=max(self.y[i,101:198]):
+                self.y[i,:] = numpy.flipud(self.y[i,:])
 
     def default_gene(self):
 
@@ -317,8 +381,6 @@ class GeneteticAlgolithm():
             self.coeficient[n][6] = 6*self.coeficient_ratio[n][6]-3        #alphaTE
             self.coeficient[n][7] = 1.4*self.coeficient_ratio[n][7]+0.6    #Amplifying coeficient
 
-
-
     def coeficient2foil(self):
         #-----make add-camberline
         for n in range(n_sample):
@@ -344,76 +406,72 @@ class GeneteticAlgolithm():
                 self.y_GA = numpy.vstack((self.y_GA,buff))
 
     def exeXFoil(self):
-        #----execute CFoil
-        fname = "a0_pwrt.dat"
-        foil = "dae31.dat"
-        ps = subprocess.Popen(['xfoil.exe'],stdin=subprocess.PIPE,stdout=None,stderr=None)
-        pipe = bytes("plop\n g\n\n load {load} \n oper\n visc {Re} \n iter 500\n pacc\n {filename} \n \n alfa{alpha}\n \n quit\n".format(load=foil,Re=Re,filename=fname,alpha=alpha),"ascii")
-        res = ps.communicate(pipe)
+        self.CL_GA = [0]*n_sample
+        self.Cd_GA = [0]*n_sample
+        self.Cm_GA = [0]*n_sample
+        self.thn_GA = [0]*n_sample
 
-        #----read XFoil Poler
-        lines = numpy.loadtxt(fname,skiprows=12)
-        if len(lines.shape)==2:
-            lines = lines[-1,:]
-        os.remove(fname)
+        for n in range(n_sample):
+            self.thn_GA[n] = numpy.interp(thnpos,self.x[101:198],self.y_GA[n,101:198])-numpy.interp(thnpos,numpy.flipud(self.x[0:99]),numpy.flipud(self.y_GA[n,0:99]))
+            #------xfoil analyze if thn_GA in correct range
+            if self.thn_GA[n]<=thn*1.2 and self.thn_GA[n]>=thn*0.8:
+                fid = open("xfoil.foil",'w')
+                fid.write("xfoil\n")
+                for i in range(numpy.shape(self.x)[0]):
+                    fid.write(" {x_ele}  {y_ele} \n".format(x_ele = self.x[i], y_ele = self.y_GA[n,i]))
+                fid.close()
+                #----execute CFoil
+                try:
+                    fname = "a0_pwrt.dat"
+                    foil = "xfoil.foil"
+                    ps = subprocess.Popen(['xfoil.exe'],stdin=subprocess.PIPE,stdout=None,stderr=None)
+                    pipe = bytes("plop\n g\n\n load {load} \n oper\n visc {Re} \n iter 500\n pacc\n {filename} \n \n alfa{alpha}\n \n quit\n".format(load=foil,Re=Re,filename=fname,alpha=alpha),"ascii")
+                    res = ps.communicate(pipe)
 
-        print(lines)
-        self.CL = lines[1]
 
+                    #----read XFoil Poler
+                    anlydata = numpy.loadtxt(fname,skiprows=12)
+                    if len(anlydata.shape)==2:
+                        anlydata = analydata[-1,:]
+                    os.remove(fname)
+
+                    self.CL_GA[n] = anlydata[1]
+                    self.Cd_GA[n] = anlydata[2]
+                    self.Cm_GA[n] = anlydata[4]
+
+                except:
+                    self.CL_GA[n] = 0
+                    self.Cd_GA[n] = 100
+                    self.Cm_GA[n] = -100
+
+            else:
+                self.CL_GA[n] = 0
+                self.Cd_GA[n] = 100
+                self.Cm_GA[n] = -100
+        print(self.Cd_GA)
+
+    def evaluete_replot(self):
+        self.pfCd = 1
+        self.pfCm = 0
+        self.pfthn =10
+        self.pfCL =5
+
+        self.Fcon = [0]*n_sample
+        for n in range(n_sample):
+            if self.thn_GA[n] >= thn:
+                self.Fcon[n] =(self.pfCd * self.Cd_GA[n] - self.pfCm * self.Cm_GA[n]) * numpy.exp(self.pfthn * abs(self.thn_GA[n] - thn) + self.pfCL * abs(self.CL_GA[n] - CL))
+            else:
+                self.Fcon[n] =(self.pfCd * self.Cd_GA[n] - self.pfCm * self.Cm_GA[n]) * numpy.exp(self.pfthn * 1.25 * abs(self.thn_GA[n] - thn) + self.pfCL * abs(self.CL_GA[n] - CL))
+        print(self.Fcon)
+        self.minFconNo = self.Fcon.index(min(self.Fcon))
+        print(self.minFconNo)
+        self.CL = self.CL_GA[self.minFconNo]
+        self.Cd = self.Cd_GA[self.minFconNo]
+        self.Cm = self.Cm_GA[self.minFconNo]
+        self.thn = self.thn_GA[self.minFconNo]
         print(self.CL)
 
-class InputWidget(QtGui.QWidget):
-    def __init__(self,parent = None,):
-        QtGui.QWidget.__init__(self, parent = parent)
-        self.inputalpha = QtGui.QLineEdit(parent = self)
-        self.inputalpha.setFixedWidth(35)
-        self.inputalpha.Normal = 4
-        self.label_alpha = QtGui.QLabel(parent = self)
-        self.label_alpha.setText("Alpha (deg):")
 
-
-        self.inputRe = QtGui.QLineEdit(parent = self)
-        self.inputRe.setFixedWidth(50)
-        self.label_Re = QtGui.QLabel(parent = self)
-        self.label_Re.setText("  Reynolds No.:")
-
-        self.inputthn = QtGui.QLineEdit(parent = self)
-        self.inputthn.setFixedWidth(30)
-        self.label_thn = QtGui.QLabel(parent = self)
-        self.label_thn.setText("  Thickness (%):")
-
-        self.inputthnpos = QtGui.QLineEdit(parent = self)
-        self.inputthnpos.setFixedWidth(30)
-        self.label_thnpos = QtGui.QLabel(parent = self)
-        self.label_thnpos.setText("  Spar Position (%):")
-
-        self.execute_button = QtGui.QPushButton("EXECUTION",parent=self)
-        self.stop_button = QtGui.QPushButton("STOP",parent=self)
-
-        layout_inputwidget = QtGui.QHBoxLayout()
-        layout_inputwidget.addWidget(self.label_alpha)
-        layout_inputwidget.addWidget(self.inputalpha)
-        layout_inputwidget.addWidget(self.label_Re)
-        layout_inputwidget.addWidget(self.inputRe)
-        layout_inputwidget.addWidget(self.label_thn)
-        layout_inputwidget.addWidget(self.inputthn)
-        layout_inputwidget.addWidget(self.label_thnpos)
-        layout_inputwidget.addWidget(self.inputthnpos)
-        layout_inputwidget.addWidget(self.execute_button)
-        layout_inputwidget.addWidget(self.stop_button)
-
-
-        self.setLayout(layout_inputwidget)
-
-    def outputparameter(self):
-        global alpha
-        alpha = float(self.inputalpha.text())
-        global Re
-        Re = float(self.inputRe.text())
-        global thn
-        thn = float(self.inputthn.text())/100
-        global thnpos
-        thnpos = float(self.inputthnpos.text())/100
 
 
 
@@ -457,7 +515,8 @@ def main():
             test.gene2coeficient()
             test.coeficient2foil()
             test.exeXFoil()
-            cfoil_widget.replot(test,0)
+            test.evaluete_replot()
+            cfoil_widget.replot(test,test.minFconNo)
 
     global foilopenconfirm
     foilopenconfirm =0
