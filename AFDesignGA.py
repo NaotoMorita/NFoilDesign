@@ -68,15 +68,16 @@ class FoilPlot(Matplot):
         Matplot.__init__(self, *args, **kwargs)
 
     def compute_initial_figure(self):
-        self.filename = "None"
-        #self.axes.plot(self.Fx, self.Fy)
+        self.filename = "dae31.dat"
+        foil = numpy.loadtxt(self.filename,skiprows=1)
+        self.Fx = foil[:,0]
+        self.Fy = foil[:,1]
+        self.axes.plot(self.Fx, self.Fy)
 
     def update_figure(self):
         self.load()
         self.axes.plot(self.Fx, self.Fy)
         self.draw()
-        global foilopenconfirm
-        foilopenconfirm += 1
 
     def update_figure2(self):
         self.axes.plot(self.Fx, self.Fy)
@@ -182,7 +183,7 @@ class CalclatedFoilWidget(QtGui.QWidget):
 
         self.datapanel = QtGui.QWidget(parent = self.itgcfw)
         self.CLlabel = QtGui.QLabel()
-        self.CLlabel.setText("CL : {CL} Cd(count) : {Cd} CL/Cd : {CLCd} Thickness : {thn:4}".format(CL = ga.CL, Cd = ga.Cd * 10000, CLCd = ga.CL/ga.Cd, thn = ga.thn * 100))
+        self.CLlabel.setText("CL : {CL}    Cd(count) : {Cd}    CL/Cd : {CLCd}    Thickness : {thn:4}".format(CL = round(ga.CL, 4), Cd = "NaN", CLCd = "NaN", thn = "NaN"))
 
         self.outputbutton = QtGui.QPushButton("EXPORT FOIL",parent = self.datapanel)
 
@@ -202,12 +203,13 @@ class CalclatedFoilWidget(QtGui.QWidget):
         self.cfw.Fx = ga.x
         self.cfw.Fy = ga.y_GA[foilno]
         self.cfw.update_figure2()
-        self.CLlabel.setText("CL : {CL:5} Cd : {Cd:4} CL/Cd : {CLCd:4} Thickness : {thn:4}".format(CL = ga.CL, Cd = ga.Cd * 10000, CLCd = ga.CL/ga.Cd, thn = ga.thn * 100))
+        self.CLlabel.setText("CL : {CL:5}    Cd(count) : {Cd:4}    CL/Cd : {CLCd:4}    Thickness : {thn:4}".format(CL = round(ga.CL, 4), Cd = round(ga.Cd * 10000,1), CLCd = round(ga.CL/ga.Cd,1), thn = round(ga.thn * 100,4)))
 
 class InputWidget(QtGui.QWidget):
     def __init__(self,parent = None,):
         QtGui.QWidget.__init__(self, parent = parent)
         self.inputalpha = QtGui.QLineEdit(parent = self)
+        self.inputalpha.setText('4')
         self.inputalpha.setFixedWidth(35)
         self.inputalpha.Normal = 4
         self.label_alpha = QtGui.QLabel(parent = self)
@@ -215,21 +217,27 @@ class InputWidget(QtGui.QWidget):
 
 
         self.inputRe = QtGui.QLineEdit(parent = self)
+        self.inputRe.setText('500000')
         self.inputRe.setFixedWidth(50)
         self.label_Re = QtGui.QLabel(parent = self)
         self.label_Re.setText("  Reynolds No.:")
 
+
         self.inputCL = QtGui.QLineEdit(parent = self)
+        self.inputCL.setText('1.1')
+        self.inputCL.selectAll()
         self.inputCL.setFixedWidth(30)
         self.label_CL = QtGui.QLabel(parent = self)
         self.label_CL.setText("  CL :")
 
         self.inputthn = QtGui.QLineEdit(parent = self)
+        self.inputthn.setText('11')
         self.inputthn.setFixedWidth(30)
         self.label_thn = QtGui.QLabel(parent = self)
         self.label_thn.setText("  Thickness (%):")
 
         self.inputthnpos = QtGui.QLineEdit(parent = self)
+        self.inputthnpos.setText('36')
         self.inputthnpos.setFixedWidth(30)
         self.label_thnpos = QtGui.QLabel(parent = self)
         self.label_thnpos.setText("  Spar Position (%):")
@@ -355,13 +363,16 @@ class GeneteticAlgolithm():
     def default_gene(self):
 
         self.parameter10 = [0]*n_sample
-        self.gene2 = [0]*n_sample
-
+        self.gene2 = [0] * n_sample
+        self.hash_GA = [0] * n_sample
         for n in range(n_sample):
             self.parameter10[n] = [random.randint(0,4095),random.randint(0,4095),random.randint(0,4095),random.randint(0,4095),random.randint(0,4095),random.randint(0,4095),random.randint(0,4095),random.randint(0,4095)]
             self.gene2[n] = [0,0,0,0,0,0,0,0]
             for i in range(8):
                 self.gene2[n][i] = str(bin(self.parameter10[n][i]))[2:].zfill(12)
+            self.hash_GA[n] = str(hash(str(self.gene2[n])))
+
+
 
     def gene2coeficient(self):
         self.coeficient_ratio = [0]*n_sample
@@ -410,6 +421,7 @@ class GeneteticAlgolithm():
         self.Cd_GA = [0]*n_sample
         self.Cm_GA = [0]*n_sample
         self.thn_GA = [0]*n_sample
+        self.CLCd_GA = [0]*n_sample
 
         for n in range(n_sample):
             self.thn_GA[n] = numpy.interp(thnpos,self.x[101:198],self.y_GA[n,101:198])-numpy.interp(thnpos,numpy.flipud(self.x[0:99]),numpy.flipud(self.y_GA[n,0:99]))
@@ -448,9 +460,9 @@ class GeneteticAlgolithm():
                 self.CL_GA[n] = 0
                 self.Cd_GA[n] = 100
                 self.Cm_GA[n] = -100
-        print(self.Cd_GA)
 
-    def evaluete_replot(self):
+
+    def evaluete_cross(self):
         self.pfCd = 1
         self.pfCm = 0
         self.pfthn =10
@@ -459,17 +471,106 @@ class GeneteticAlgolithm():
         self.Fcon = [0]*n_sample
         for n in range(n_sample):
             if self.thn_GA[n] >= thn:
-                self.Fcon[n] =(self.pfCd * self.Cd_GA[n] - self.pfCm * self.Cm_GA[n]) * numpy.exp(self.pfthn * abs(self.thn_GA[n] - thn) + self.pfCL * abs(self.CL_GA[n] - CL))
+                self.Fcon[n] =(self.pfCd * 1 / self.Cd_GA[n] - self.pfCm * 1 / self.Cm_GA[n]) * numpy.exp(-self.pfthn * abs(self.thn_GA[n] - thn) - self.pfCL * abs(self.CL_GA[n] - CL))
             else:
-                self.Fcon[n] =(self.pfCd * self.Cd_GA[n] - self.pfCm * self.Cm_GA[n]) * numpy.exp(self.pfthn * 1.25 * abs(self.thn_GA[n] - thn) + self.pfCL * abs(self.CL_GA[n] - CL))
-        print(self.Fcon)
-        self.minFconNo = self.Fcon.index(min(self.Fcon))
-        print(self.minFconNo)
-        self.CL = self.CL_GA[self.minFconNo]
-        self.Cd = self.Cd_GA[self.minFconNo]
-        self.Cm = self.Cm_GA[self.minFconNo]
-        self.thn = self.thn_GA[self.minFconNo]
-        print(self.CL)
+                self.Fcon[n] =(self.pfCd * 1 / self.Cd_GA[n] - self.pfCm * 1 / self.Cm_GA[n]) * numpy.exp(-self.pfthn * 1.25 * abs(self.thn_GA[n] - thn) - self.pfCL * abs(self.CL_GA[n] - CL))
+        self.maxFconNo = self.Fcon.index(max(self.Fcon))
+        self.CL = self.CL_GA[self.maxFconNo]
+        self.Cd = self.Cd_GA[self.maxFconNo]
+        self.Cm = self.Cm_GA[self.maxFconNo]
+        self.thn = self.thn_GA[self.maxFconNo]
+        for n in range(n_sample):
+            self.CLCd_GA[n] = self.CL_GA[n] / self.Cd_GA[n]
+
+        #-----ソート
+        self.sortedlist = numpy.zeros((n_sample,3))
+        ind = numpy.argsort(self.Fcon)
+
+        for i in range(n_sample):
+            self.sortedlist[i,0] = self.Fcon[ind[i]]
+            self.sortedlist[i,1] = self.CLCd_GA[ind[i]]
+            self.sortedlist[i,2] = self.thn_GA[ind[i]]
+        #-----sampleの総和を求める
+        sumFcon = float(0)
+        for n in range(n_sample-1):
+            if self.hash_GA[n] in self.hash_GA[n+1:n_sample]:
+                pass
+            else:
+                sumFcon += self.Fcon[n]
+
+        sumFcon += self.Fcon[n_sample-1]
+
+        self.surviveP = [float(1)] * n_sample
+        for n in range(n_sample-1):
+            if self.hash_GA[n] in self.hash_GA[n+1:n_sample]:
+                pass
+            else:
+                self.surviveP[n] = self.Fcon[n] / sumFcon
+        self.surviveP[n_sample-1] = self.Fcon[n_sample-1] / sumFcon
+
+        couple_GA = [0] * int(n_sample/2)
+        for couple in range(int(n_sample/2)):
+            couple_GA[couple] = [0,0]
+            fatum = random.random()
+            for i in range(n_sample):
+                if i != 0:
+                    if fatum < sum(self.surviveP[0:i]) and sum(self.surviveP[0:i-1])<=fatum :
+                        couple_GA[couple][0] = i
+                        break
+                else:
+                    if fatum < self.surviveP[0]:
+                        couple_GA[couple][0] = i
+                        break
+
+            fatum = random.random()
+            for i in range(n_sample):
+                if i != 0:
+                    if fatum < sum(self.surviveP[0:i]) and sum(self.surviveP[0:i-1])<=fatum :
+                        couple_GA[couple][1] = i
+                        break
+                else:
+                    if fatum < self.surviveP[0]:
+                        couple_GA[couple][1] = i
+                        break
+
+        #-----交配
+        print(self.gene2[couple_GA[0][0]][0][0:1]+self.gene2[couple_GA[0][0]][0][1:12])
+        for n in range(int(n_sample/2)):
+            for i in range(8):
+                cross_point = random.randint(1,1)
+                #print(cross_point)
+
+                cross1a = self.gene2[couple_GA[n][0]][i][cross_point:12]
+                cross1b = self.gene2[couple_GA[n][0]][i][0:cross_point]
+                cross2a = self.gene2[couple_GA[n][1]][i][cross_point:12]
+                cross2b = self.gene2[couple_GA[n][1]][i][0:cross_point]
+                #print([cross1a,cross1b])
+                #print([cross1a,cross1b])
+                self.gene2[2*n][i] = cross1b+cross2a
+                self.gene2[2*n+1][i] = cross2b+cross1a
+        print(self.gene2)
+        for n in range(n_sample):
+            self.hash_GA[n] = str(hash(str(self.gene2[n])))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -506,20 +607,23 @@ def main():
     global n_sample
     n_sample = 100
     def exeGA():
-        if foilopenconfirm >= 4:
-            input_widget.outputparameter()
+        input_widget.outputparameter()
 
-            test.getFoilChord(basefoilpanel)
-            test.defineFoil()
-            test.default_gene()
-            test.gene2coeficient()
-            test.coeficient2foil()
-            test.exeXFoil()
-            test.evaluete_replot()
-            cfoil_widget.replot(test,test.minFconNo)
+        test.getFoilChord(basefoilpanel)
+        test.defineFoil()
+        test.default_gene()
+        test.gene2coeficient()
+        test.coeficient2foil()
+        test.exeXFoil()
+        test.evaluete_cross()
+        cfoil_widget.replot(test,test.maxFconNo)
+        test.gene2coeficient()
+        test.coeficient2foil()
+        test.exeXFoil
+        test.evaluete_cross()
+        cfoil_widget.replot(test,test.maxFconNo)
+        print('end')
 
-    global foilopenconfirm
-    foilopenconfirm =0
 
     input_widget.connect(input_widget.execute_button,QtCore.SIGNAL('clicked()'),exeGA)
 
