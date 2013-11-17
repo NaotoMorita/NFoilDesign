@@ -10,10 +10,10 @@
 #-------------------------------------------------------------------------------
 
 #-*- coding: utf-8 -*-
-import scipy, numpy
+import scipy, numpy, math
 
 
-import sys, os, random
+import sys, os, random, copy
 from PyQt4 import QtGui, QtCore
 
 # Matplotlib Figure object
@@ -375,7 +375,11 @@ class GeneteticAlgolithm():
                 self.gene2[n][i] = str(bin(self.parameter10[n][i]))[2:].zfill(12)
             self.hash_GA[n] = str(hash(str(self.gene2[n])))
 
+        print
+
         self.save_topValue = 0
+
+
 
 
 
@@ -386,7 +390,8 @@ class GeneteticAlgolithm():
             self.coeficient_ratio[n] = [0,0,0,0,0,0,0,0]
             self.coeficient[n] = [0,0,0,0,0,0,0,0]
             for i in range(8):
-                self.coeficient_ratio[n][i] = int(self.gene2[n][i],2) / 4095
+                self.coeficient_ratio[n][i] = float(int(self.gene2[n][i],2) / 4095)
+
 
             self.coeficient[n][0] = 2*self.coeficient_ratio[n][0]-1
             self.coeficient[n][1] = 2*self.coeficient_ratio[n][1]-1
@@ -422,16 +427,17 @@ class GeneteticAlgolithm():
                 self.y_GA = numpy.vstack((self.y_GA,buff))
 
     def exeXFoil(self):
-        self.CL_GA = [0]*n_sample
-        self.Cd_GA = [0]*n_sample
-        self.Cm_GA = [0]*n_sample
-        self.thn_GA = [0]*n_sample
-        self.CLCd_GA = [0]*n_sample
+        self.CL_GA = [0.0]*n_sample
+        self.Cd_GA = [0.0]*n_sample
+        self.Cm_GA = [0.0]*n_sample
+        self.thn_GA = [0.0]*n_sample
+        self.CLCd_GA = [0.0]*n_sample
 
         for n in range(n_sample):
             self.thn_GA[n] = numpy.interp(thnpos,self.x[101:198],self.y_GA[n,101:198])-numpy.interp(thnpos,numpy.flipud(self.x[0:99]),numpy.flipud(self.y_GA[n,0:99]))
             #------xfoil analyze if thn_GA in correct range
-            if self.thn_GA[n]<=thn*1.2 and self.thn_GA[n]>=thn*0.8:
+            if self.thn_GA[n]<=thn*1.3 and self.thn_GA[n]>=thn*0.7 and self.hash_GA[n] not in self.hash_GA[n+1:n_sample] :
+                print(n)
                 fid = open("xfoil.foil",'w')
                 fid.write("xfoil\n")
                 for i in range(numpy.shape(self.x)[0]):
@@ -452,6 +458,11 @@ class GeneteticAlgolithm():
                         anlydata = analydata[-1,:]
                     os.remove(fname)
 
+                    if math.isnan(float(sum(anlydata))):
+                        raise
+
+
+
                     self.CL_GA[n] = anlydata[1]
                     self.Cd_GA[n] = anlydata[2]
                     self.Cm_GA[n] = anlydata[4]
@@ -467,8 +478,10 @@ class GeneteticAlgolithm():
                 self.Cm_GA[n] = -100
 
 
+
+
     def evaluete_cross(self):
-        self.pfCd = 100
+        self.pfCd = 1
         self.pfCm = 0
         self.pfthn =10
         self.pfCL =5
@@ -478,7 +491,7 @@ class GeneteticAlgolithm():
             if self.thn_GA[n] >= thn:
                 self.Fcon[n] =(self.pfCd * 1 / self.Cd_GA[n] - self.pfCm * 1 / self.Cm_GA[n]) * numpy.exp(-self.pfthn * abs(self.thn_GA[n] - thn) - self.pfCL * abs(self.CL_GA[n] - CL))
             else:
-                self.Fcon[n] =(self.pfCd * 1 / self.Cd_GA[n] - self.pfCm * 1 / self.Cm_GA[n]) * numpy.exp(-self.pfthn * 1.25 * abs(self.thn_GA[n] - thn) - self.pfCL * abs(self.CL_GA[n] - CL))
+                self.Fcon[n] =(self.pfCd * 1 / self.Cd_GA[n] - self.pfCm * 1 / self.Cm_GA[n]) * numpy.exp(-self.pfthn * 1.2 * abs(self.thn_GA[n] - thn) - self.pfCL * abs(self.CL_GA[n] - CL))
         self.maxFconNo = self.Fcon.index(max(self.Fcon))
         self.CL = self.CL_GA[self.maxFconNo]
         self.Cd = self.Cd_GA[self.maxFconNo]
@@ -486,9 +499,11 @@ class GeneteticAlgolithm():
         self.thn = self.thn_GA[self.maxFconNo]
 
         #-----最大値の保存
-        if numpy.max(self.Fcon) >= self.save_topValue:
-            self.save_topValue = self.Fcon[self.maxFconNo]
-            self.save_top = self.gene2[self.maxFconNo]
+        if numpy.max(self.Fcon) > self.save_topValue:
+            self.save_topValue = copy.deepcopy(self.Fcon[self.maxFconNo])
+            self.save_top = copy.deepcopy(self.gene2[self.maxFconNo])
+            print("saved")
+            print(self.save_topValue)
 
         for n in range(n_sample):
             self.CLCd_GA[n] = self.CL_GA[n] / self.Cd_GA[n]
@@ -525,7 +540,7 @@ class GeneteticAlgolithm():
             fatum = random.random()
             for i in range(n_sample):
                 if i != 0:
-                    if fatum < sum(self.surviveP[0:i]) and sum(self.surviveP[0:i-1])<=fatum :
+                    if fatum > sum(self.surviveP[0:i]) and fatum <= sum(self.surviveP[0:i+1]) :
                         couple_GA[couple][0] = i
                         break
                 else:
@@ -536,9 +551,12 @@ class GeneteticAlgolithm():
             fatum = random.random()
             for i in range(n_sample):
                 if i != 0:
-                    if fatum < sum(self.surviveP[0:i]) and sum(self.surviveP[0:i-1])<=fatum :
+                    if fatum > sum(self.surviveP[0:i]) and fatum <= sum(self.surviveP[0:i+1]) :
                         couple_GA[couple][1] = i
                         break
+                elif i==n_sample-1:
+                    couple_GA[couple][1] = n_sample-1
+                    print('bug')
                 else:
                     if fatum < self.surviveP[0]:
                         couple_GA[couple][1] = i
@@ -557,17 +575,41 @@ class GeneteticAlgolithm():
                 #print([cross1a,cross1b]
                 self.gene2[2*n][i] = cross1b+cross2a
                 self.gene2[2*n+1][i] = cross2b+cross1a
-        self.gene2[n_sample-1] = self.save_top
+        print(self.save_top)
+        self.hash_GA = [0] * n_sample
         for n in range(n_sample):
             self.hash_GA[n] = str(hash(str(self.gene2[n])))
-        print(self.hash_GA)
-        print(self.gene2)
+        #print(self.hash_GA)
+        #print(self.gene2)
+        #print(self.coeficient_ratio)
         print(couple_GA)
         print(self.surviveP)
-        print(sumFcon)
-        print(numpy.max(self.Fcon))
-        print(sum(self.surviveP))
-        print(self.Fcon[self.maxFconNo])
+        #print(sumFcon)
+        #print(numpy.max(self.Fcon))
+        #print(sum(self.surviveP))
+        #print(self.Fcon[self.maxFconNo])
+
+        #-----突然変異操作
+        for n in range(n_sample):
+            mutation = random.random()
+            if mutation <= 0.05:
+                i = random.randint(0,7)
+                print("mutation is happened")
+                rand_i = random.randint(1,10)
+                if self.gene2[n][i][rand_i] == "0":
+                    temp = self.gene2[n][i][0:rand_i]
+                    self.gene2[n][i] = temp + "1"*(11-i)
+                else:
+                    temp =self.gene2[n][i][0:rand_i]
+                    self.gene2[n][i] = temp + "0"*(11-i)
+
+        self.gene2[n_sample-1] = copy.deepcopy(self.save_top)
+
+
+
+
+
+
 
 
 
@@ -649,6 +691,7 @@ def main():
         test.evaluete_cross()
         cfoil_widget.replot(test,test.maxFconNo)
         print("done")
+        print(test.sortedlist)
 
     input_widget.connect(input_widget.default_button,QtCore.SIGNAL('clicked()'),be_default)
     input_widget.connect(input_widget.execute_button,QtCore.SIGNAL('clicked()'),exeGA)
