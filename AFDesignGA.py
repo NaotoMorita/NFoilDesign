@@ -244,6 +244,8 @@ class InputWidget(QtGui.QWidget):
 
         self.execute_button = QtGui.QPushButton("EXECUTION",parent=self)
         self.stop_button = QtGui.QPushButton("STOP",parent=self)
+        self.default_button = QtGui.QPushButton("Default",parent=self)
+
 
         layout_inputwidget = QtGui.QHBoxLayout()
         layout_inputwidget.addWidget(self.label_alpha)
@@ -256,6 +258,7 @@ class InputWidget(QtGui.QWidget):
         layout_inputwidget.addWidget(self.inputthn)
         layout_inputwidget.addWidget(self.label_thnpos)
         layout_inputwidget.addWidget(self.inputthnpos)
+        layout_inputwidget.addWidget(self.default_button)
         layout_inputwidget.addWidget(self.execute_button)
         layout_inputwidget.addWidget(self.stop_button)
 
@@ -372,6 +375,8 @@ class GeneteticAlgolithm():
                 self.gene2[n][i] = str(bin(self.parameter10[n][i]))[2:].zfill(12)
             self.hash_GA[n] = str(hash(str(self.gene2[n])))
 
+        self.save_topValue = 0
+
 
 
     def gene2coeficient(self):
@@ -405,7 +410,7 @@ class GeneteticAlgolithm():
                 c_mat[0,m] = xc**(m+1)
                 c_mat[1,m] = xc**(m) * (m+1)
                 c_mat[2,m] = 1.0
-                c_mat[3,m] = m+1.0
+                c_mat[3,m] = m + 1.0
             camber_coeficient =numpy.linalg.solve(c_mat,cu_vector)
             addcamber = camber_coeficient[0] * self.x + camber_coeficient[1] * self.x**2 + camber_coeficient[2] * self.x**3 + camber_coeficient[3] * self.x ** 4
 
@@ -463,7 +468,7 @@ class GeneteticAlgolithm():
 
 
     def evaluete_cross(self):
-        self.pfCd = 1
+        self.pfCd = 100
         self.pfCm = 0
         self.pfthn =10
         self.pfCL =5
@@ -479,6 +484,12 @@ class GeneteticAlgolithm():
         self.Cd = self.Cd_GA[self.maxFconNo]
         self.Cm = self.Cm_GA[self.maxFconNo]
         self.thn = self.thn_GA[self.maxFconNo]
+
+        #-----最大値の保存
+        if numpy.max(self.Fcon) >= self.save_topValue:
+            self.save_topValue = self.Fcon[self.maxFconNo]
+            self.save_top = self.gene2[self.maxFconNo]
+
         for n in range(n_sample):
             self.CLCd_GA[n] = self.CL_GA[n] / self.Cd_GA[n]
 
@@ -500,8 +511,8 @@ class GeneteticAlgolithm():
 
         sumFcon += self.Fcon[n_sample-1]
 
-        self.surviveP = [float(1)] * n_sample
-        for n in range(n_sample-1):
+        self.surviveP = [float(0)] * n_sample
+        for n in range(n_sample - 1):
             if self.hash_GA[n] in self.hash_GA[n+1:n_sample]:
                 pass
             else:
@@ -534,23 +545,29 @@ class GeneteticAlgolithm():
                         break
 
         #-----交配
-        print(self.gene2[couple_GA[0][0]][0][0:1]+self.gene2[couple_GA[0][0]][0][1:12])
         for n in range(int(n_sample/2)):
             for i in range(8):
-                cross_point = random.randint(1,1)
+                cross_point = random.randint(2,10)
                 #print(cross_point)
 
                 cross1a = self.gene2[couple_GA[n][0]][i][cross_point:12]
                 cross1b = self.gene2[couple_GA[n][0]][i][0:cross_point]
                 cross2a = self.gene2[couple_GA[n][1]][i][cross_point:12]
                 cross2b = self.gene2[couple_GA[n][1]][i][0:cross_point]
-                #print([cross1a,cross1b])
-                #print([cross1a,cross1b])
+                #print([cross1a,cross1b]
                 self.gene2[2*n][i] = cross1b+cross2a
                 self.gene2[2*n+1][i] = cross2b+cross1a
-        print(self.gene2)
+        self.gene2[n_sample-1] = self.save_top
         for n in range(n_sample):
             self.hash_GA[n] = str(hash(str(self.gene2[n])))
+        print(self.hash_GA)
+        print(self.gene2)
+        print(couple_GA)
+        print(self.surviveP)
+        print(sumFcon)
+        print(numpy.max(self.Fcon))
+        print(sum(self.surviveP))
+        print(self.Fcon[self.maxFconNo])
 
 
 
@@ -605,26 +622,35 @@ def main():
     main_window.show()
 
     global n_sample
-    n_sample = 100
-    def exeGA():
+    n_sample = 250
+    if "done_default" in locals():
+        pass
+    else:
+        done_default = 0
+
+    def be_default():
         input_widget.outputparameter()
 
         test.getFoilChord(basefoilpanel)
         test.defineFoil()
         test.default_gene()
+        done_default = 1
+        print(done_default)
+
+
+
+    def exeGA():
+        print(done_default)
+        #if done_default == 1:
+        print("doing")
         test.gene2coeficient()
         test.coeficient2foil()
         test.exeXFoil()
         test.evaluete_cross()
         cfoil_widget.replot(test,test.maxFconNo)
-        test.gene2coeficient()
-        test.coeficient2foil()
-        test.exeXFoil
-        test.evaluete_cross()
-        cfoil_widget.replot(test,test.maxFconNo)
-        print('end')
+        print("done")
 
-
+    input_widget.connect(input_widget.default_button,QtCore.SIGNAL('clicked()'),be_default)
     input_widget.connect(input_widget.execute_button,QtCore.SIGNAL('clicked()'),exeGA)
 
 
