@@ -176,19 +176,19 @@ class BaseFoilWidget(QtGui.QWidget):
 
     def updatefigure_changelabel_no1(self):
         self.no1.showfoil.update_figure()
-        self.no1.foilnamelanbel.setText(os.path.basename(self.no1.showfoil.filename))
+        self.no1.foilnamelabel.setText(os.path.basename(self.no1.showfoil.filename))
 
     def updatefigure_changelabel_no2(self):
         self.no2.showfoil.update_figure()
-        self.no2.foilnamelanbel.setText(os.path.basename(self.no2.showfoil.filename))
+        self.no2.foilnamelabel.setText(os.path.basename(self.no2.showfoil.filename))
 
     def updatefigure_changelabel_no3(self):
         self.no3.showfoil.update_figure()
-        self.no3.foilnamelanbel.setText(os.path.basename(self.no3.showfoil.filename))
+        self.no3.foilnamelabel.setText(os.path.basename(self.no3.showfoil.filename))
 
     def updatefigure_changelabel_no4(self):
         self.no4.showfoil.update_figure()
-        self.no4.foilnamelanbel.setText(os.path.basename(self.no4.showfoil.filename))
+        self.no4.foilnamelabel.setText(os.path.basename(self.no4.showfoil.filename))
 
 class CalclatedFoilWidget(QtGui.QWidget):
     def __init__(self,ga,foilno = 0,parent = None):
@@ -204,7 +204,7 @@ class CalclatedFoilWidget(QtGui.QWidget):
 
         self.datapanel = QtGui.QWidget(parent = self.itgcfw)
         self.CLlabel = QtGui.QLabel()
-        self.CLlabel.setText("CL : {CL}    Cd(count) : {Cd}    CL/Cd : {CLCd}    Thickness : {thn:4}".format(CL = round(ga.CL, 4), Cd = "NaN", CLCd = "NaN", thn = "NaN"))
+        self.CLlabel.setText("CL : {CL}    Cd(count) : {Cd}    CL/Cd : {CLCd}    Cm : {Cm}     Thickness : {thn:4}".format(CL = round(ga.CL, 4), Cd = "NaN", CLCd = "NaN",Cm = "Nan", thn = "NaN"))
 
         self.outputbutton = QtGui.QPushButton("EXPORT FOIL",parent = self.datapanel)
 
@@ -222,7 +222,7 @@ class CalclatedFoilWidget(QtGui.QWidget):
         self.cfw.Fx = ga.x
         self.cfw.Fy = ga.y_GA[foilno]
         self.cfw.update_figure2()
-        self.CLlabel.setText("CL : {CL:5}    Cd(count) : {Cd:4}    CL/Cd : {CLCd:4}    Thickness : {thn:4}".format(CL = round(ga.CL, 4), Cd = round(ga.Cd * 10000,1), CLCd = round(ga.CL/ga.Cd,1), thn = round(ga.thn * 100,4)))
+        self.CLlabel.setText("CL : {CL:5}    Cd(count) : {Cd:4}    CL/Cd : {CLCd:4}    Cm : {Cm}     Thickness : {thn:4}".format(CL = round(ga.CL, 4), Cd = round(ga.Cd * 10000,1), CLCd = round(ga.CL/ga.Cd,1),Cm = round(ga.Cm,4), thn = round(ga.thn * 100,4)))
 
 class Inputtarget_Setbutton_Widget(QtGui.QWidget):
     def __init__(self,parent = None,):
@@ -297,12 +297,12 @@ class Inputtarget_Setbutton_Widget(QtGui.QWidget):
         self.inputevafunc.text1 = QtGui.QLabel(parent = self.inputevafunc)
         self.inputevafunc.text1.setText("Evaluating Function : (")
         self.inputevafunc.P1 = QtGui.QLineEdit(parent = self.inputevafunc)
-        self.inputevafunc.P1.setText("0")
+        self.inputevafunc.P1.setText("1")
         self.inputevafunc.P1.setFixedWidth(20)
         self.inputevafunc.text2 = QtGui.QLabel(parent = self.inputevafunc)
         self.inputevafunc.text2.setText("* 1/Cd  -")
         self.inputevafunc.P2 = QtGui.QLineEdit(parent = self.inputevafunc)
-        self.inputevafunc.P2.setText("10")
+        self.inputevafunc.P2.setText("0")
         self.inputevafunc.P2.setFixedWidth(20)
         self.inputevafunc.text3 = QtGui.QLabel(parent = self.inputevafunc)
         self.inputevafunc.text3.setText("* 1/Cm ) * Exp{ -")
@@ -378,9 +378,10 @@ class DataPlotWidget(QtGui.QWidget):
 class TitleExeStopProgressWidget(QtGui.QWidget):
     def __init__(self,parent = None):
         QtGui.QWidget.__init__(self, parent = parent)
+        self.second = QtGui.QWidget(parent= self)
 
         self.title = QtGui.QLabel(("<font size = 10> AFDesign </font> <font size = 5> -AirFoil Design Tool with Genetic Algorithm-  </font>"))
-        self.progressbar = QtGui.QProgressBar(parent = self)
+        self.progressbar = QtGui.QProgressBar(parent = self.second)
         self.progressbar.setFixedSize(300,30)
 
         DEFAULT_STYLE = """
@@ -398,9 +399,38 @@ class TitleExeStopProgressWidget(QtGui.QWidget):
         """
         self.progressbar.setStyleSheet(DEFAULT_STYLE)
 
+        self.indno = QtGui.QLabel(parent = self.second)
+        self.indno.setText("Num of individual : ")
+        self.inputindno = QtGui.QLineEdit(parent = self.second)
+        self.inputindno.setFixedWidth(30)
+        self.inputindno.setText("250")
+
+        self.generation = QtGui.QLabel(parent = self.second)
+        self.generation.setText("  Generation : None / ")
+        self.inputgeneration = QtGui.QLineEdit(parent = self.second)
+        self.inputgeneration.setFixedWidth(30)
+        self.inputgeneration.setText("100")
+
+
+
+
+
+        self.exebutton = QtGui.QPushButton("EXECUTE")
+        self.stopbutton = QtGui.QPushButton("STOP")
+
+        self.second.layout = QtGui.QHBoxLayout()
+        self.second.layout.addWidget(self.progressbar)
+        self.second.layout.addWidget(self.indno)
+        self.second.layout.addWidget(self.inputindno)
+        self.second.layout.addWidget(self.generation)
+        self.second.layout.addWidget(self.inputgeneration)
+        self.second.layout.addWidget(self.exebutton)
+        self.second.layout.addWidget(self.stopbutton)
+        self.second.setLayout(self.second.layout)
+
         self.layout = QtGui.QVBoxLayout()
         self.layout.addWidget(self.title)
-        self.layout.addWidget(self.progressbar)
+        self.layout.addWidget(self.second)
         self.setLayout(self.layout)
 
         #世代表示
@@ -836,41 +866,44 @@ def main():
     main_panel.setLayout(main_panel_layout)
 
     main_window.setCentralWidget(main_panel)
+    main_window.setWindowTitle("AFDesign -GA-")
     main_window.show()
 
-    global n_sample
-    n_sample = 250
-    if "done_default" in locals():
-        pass
-    else:
-        done_default = 0
-
-    def be_default():
-        test.getFoilChord(basefoilpanel)
-        test.defineFoil()
-        test.default_gene()
-        done_default = 1
-        print(done_default)
-
-
-
     def exeGA():
-        print(done_default)
-        #if done_default == 1:
-        print("doing")
-        test.gene2coeficient()
-        test.coeficient2foil()
-        test.exeXFoil(qApp,titleexeprogress,input_widget)
-        test.evaluete_cross(input_widget)
-        cfoil_widget.replot(test,test.maxFconNo)
-        print("done")
-        print(test.sortedlist)
-        dataplotwidget.updata_dataplot(test)
+        max_generation = int(titleexeprogress.inputgeneration.text())
+        generation = 0
+        while generation < max_generation:
+            generation += 1
+            qApp.processEvents()
+            if generation == 1:
+                titleexeprogress.generation.setText("  Generation : {fgene} / ".format(fgene = generation))
+                global n_sample
+                n_sample = int(titleexeprogress.inputindno.text())
+                titleexeprogress.inputindno.setDisabled(1)
 
+                test.getFoilChord(basefoilpanel)
+                test.defineFoil()
+                test.default_gene()
+                test.gene2coeficient()
+                test.coeficient2foil()
+                test.exeXFoil(qApp,titleexeprogress,input_widget)
+                test.evaluete_cross(input_widget)
+                cfoil_widget.replot(test,test.maxFconNo)
+                dataplotwidget.updata_dataplot(test)
+            else:
+                test.gene2coeficient()
+                test.coeficient2foil()
+                test.exeXFoil(qApp,titleexeprogress,input_widget)
+                test.evaluete_cross(input_widget)
+                cfoil_widget.replot(test,test.maxFconNo)
+                dataplotwidget.updata_dataplot(test)
+                titleexeprogress.generation.setText("Generation : {fgene} / ".format(fgene = generation))
+
+            max_generation = int(titleexeprogress.inputgeneration.text())
+
+    titleexeprogress.connect(titleexeprogress.exebutton,QtCore.SIGNAL('clicked()'),exeGA)
     #input_widget.connect(input_widget.default_button,QtCore.SIGNAL('clicked()'),be_default)
     #input_widget.connect(input_widget.execute_button,QtCore.SIGNAL('clicked()'),exeGA)
-    be_default()
-    exeGA()
 
     sys.exit(qApp.exec_())
 
