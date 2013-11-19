@@ -16,16 +16,8 @@ import scipy, numpy, math
 import sys, os, random, copy
 from PyQt4 import QtGui, QtCore
 
-# Matplotlib Figure object
 import matplotlib
-import matplotlib.pyplot
 
-# Python Qt4 bindings for GUI objects
-import PyQt4.QtGui
-
-# import the Qt4Agg FigureCanvas object, that binds Figure to
-# Qt4Agg backend. It also inherits from QWidget
-#from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.backends.backend_qt4agg
 import matplotlib.backends.backend_agg
 
@@ -36,12 +28,13 @@ import shutil
 progname = os.path.basename(sys.argv[0])
 progversion = "0.1"
 
+
 class Matplot(matplotlib.backends.backend_qt4agg.FigureCanvasQTAgg):
     def __init__(self, parent=None, width=6, height=3, dpi=50, Fx = numpy.array([[0],[0]]), Fy = numpy.array([[0],[0]])):
         self.Fx = numpy.array(Fx)
         self.Fy = numpy.array(Fy)
-        self.datax = 0
-        self.datay = 0
+        self.datax = 0.0
+        self.datay = 0.0
 
         fig = matplotlib.figure.Figure(figsize=(width, height), dpi=dpi)
         self.axes = fig.add_subplot(111)
@@ -95,13 +88,20 @@ class DataPlot(Matplot):
         Matplot.__init__(self, *args, **kwargs)
 
     def compute_initial_figure(self):
-        self.filename = "None"
         self.axes.set_aspect("auto")
 
 
-    def update_figure(self):
+    def update_figure(self,xlim = None, ylim = None, xlabel = "xlabel", ylabel = "ylabel"):
         self.axes.plot(self.datax, self.datay,marker='o',linewidth=0)
         self.axes.set_aspect("auto")
+        if xlim != None:
+            self.axes.set_xlim(xlim)
+        if ylim != None:
+            self.axes.set_ylim(ylim)
+        self.axes.set_xlabel(xlabel)
+        self.axes.set_ylabel(ylabel)
+
+
         self.draw()
 
 class MatPlotWidget(QtGui.QWidget):
@@ -266,16 +266,108 @@ class InputWidget(QtGui.QWidget):
         self.setLayout(layout_inputwidget)
 
     def outputparameter(self):
+
         global alpha
-        alpha = float(self.inputalpha.text())
         global Re
-        Re = float(self.inputRe.text())
         global CL
-        CL = float(self.inputCL.text())
         global thn
-        thn = float(self.inputthn.text())/100
         global thnpos
+        global Cd_target
+
+        alpha = float(self.inputalpha.text())
+        Re = float(self.inputRe.text())
+        CL = float(self.inputCL.text())
+        thn = float(self.inputthn.text())/100
         thnpos = float(self.inputthnpos.text())/100
+        Cd_target = float(65/10000)
+
+
+
+class DataPlotWidget(QtGui.QWidget):
+    def __init__(self,parent = None):
+        QtGui.QWidget.__init__(self, parent = parent)
+
+        self.main_widget = QtGui.QWidget(parent = self)
+        evo_widget = QtGui.QWidget(parent = self.main_widget)
+
+        self.Fconplot = DataPlot(parent = self.main_widget)
+        self.Fconplot.compute_initial_figure()
+        self.evo_CLCDplot = DataPlot(parent = evo_widget)
+        self.evo_CLCDplot.compute_initial_figure()
+        self.evo_thnplot = DataPlot(parent = evo_widget)
+        self.evo_thnplot.compute_initial_figure()
+
+
+
+
+        evo_widget_layout = QtGui.QVBoxLayout()
+        evo_widget_layout.addWidget(self.evo_CLCDplot)
+        evo_widget_layout.addWidget(self.evo_thnplot)
+        evo_widget.setLayout(evo_widget_layout)
+
+        main_widget_layout = QtGui.QHBoxLayout()
+        main_widget_layout.addWidget(self.Fconplot)
+        main_widget_layout.addWidget(evo_widget)
+        self.main_widget.setLayout(main_widget_layout)
+
+    def updata_dataplot(self,ga):
+        self.Fconplot.datax = range(n_sample,0,-1)
+        self.Fconplot.datay = ga.sortedlist[:,0]
+        self.Fconplot.update_figure(ylabel = "Values of Evalueting Function",xlabel = "sample No")
+        self.evo_CLCDplot.datax = range(n_sample,0,-1)
+        self.evo_CLCDplot.datay = ga.sortedlist[:,1]
+        self.evo_CLCDplot.update_figure(ylabel = "CL/CD",xlabel = "sample No")
+        self.evo_thnplot.datax = range(n_sample,0,-1)
+        self.evo_thnplot.datay = ga.sortedlist[:,2]
+        self.evo_thnplot.update_figure(ylim = [0,0.25] ,ylabel = "Thickness",xlabel = "sample No")
+
+class ExeStopProgressWidget(QtGui.QWidget):
+    def __init__(self,parent = None):
+        QtGui.QWidget.__init__(self, parent = parent)
+
+        self.main_widget = QtGui.QWidget(parent = self)
+        progressbar = QtGui.QProgressBar(parent = self.main_widget)
+        #progressbar.setvalue
+
+
+class DataPlotWidget(QtGui.QWidget):
+    def __init__(self,parent = None):
+        QtGui.QWidget.__init__(self, parent = parent)
+
+        self.main_widget = QtGui.QWidget(parent = self)
+        evo_widget = QtGui.QWidget(parent = self.main_widget)
+
+        self.Fconplot = DataPlot(parent = self.main_widget)
+        self.Fconplot.compute_initial_figure()
+        self.evo_CLCDplot = DataPlot(parent = evo_widget)
+        self.evo_CLCDplot.compute_initial_figure()
+        self.evo_thnplot = DataPlot(parent = evo_widget)
+        self.evo_thnplot.compute_initial_figure()
+
+
+
+
+        evo_widget_layout = QtGui.QVBoxLayout()
+        evo_widget_layout.addWidget(self.evo_CLCDplot)
+        evo_widget_layout.addWidget(self.evo_thnplot)
+        evo_widget.setLayout(evo_widget_layout)
+
+        main_widget_layout = QtGui.QHBoxLayout()
+        main_widget_layout.addWidget(self.Fconplot)
+        main_widget_layout.addWidget(evo_widget)
+        self.main_widget.setLayout(main_widget_layout)
+
+    def updata_dataplot(self,ga):
+        self.Fconplot.datax = range(n_sample,0,-1)
+        self.Fconplot.datay = ga.sortedlist[:,0]
+        self.Fconplot.update_figure()
+        self.evo_CLCDplot.datax = range(n_sample,0,-1)
+        self.evo_CLCDplot.datay = ga.sortedlist[:,1]
+        self.evo_CLCDplot.update_figure()
+        self.evo_thnplot.datax = range(n_sample,0,-1)
+        self.evo_thnplot.datay = ga.sortedlist[:,2]
+        self.evo_thnplot.update_figure(ylim = [0,0.25])
+
 
 
 
@@ -375,13 +467,7 @@ class GeneteticAlgolithm():
                 self.gene2[n][i] = str(bin(self.parameter10[n][i]))[2:].zfill(12)
             self.hash_GA[n] = str(hash(str(self.gene2[n])))
 
-        print
-
         self.save_topValue = 0
-
-
-
-
 
     def gene2coeficient(self):
         self.coeficient_ratio = [0]*n_sample
@@ -391,7 +477,6 @@ class GeneteticAlgolithm():
             self.coeficient[n] = [0,0,0,0,0,0,0,0]
             for i in range(8):
                 self.coeficient_ratio[n][i] = float(int(self.gene2[n][i],2) / 4095)
-
 
             self.coeficient[n][0] = 2*self.coeficient_ratio[n][0]-1
             self.coeficient[n][1] = 2*self.coeficient_ratio[n][1]-1
@@ -426,7 +511,11 @@ class GeneteticAlgolithm():
                 buff =( self.y[0,:] * self.coeficient[n][0] + self.y[1,:] * self.coeficient[n][1] + self.y[2,:] * self.coeficient[n][2] + self.y[3,:] * self.coeficient[n][3] + addcamber) * self.coeficient[n][7]
                 self.y_GA = numpy.vstack((self.y_GA,buff))
 
-    def exeXFoil(self):
+    def exeXFoil(self,qapp):
+
+
+
+
         self.CL_GA = [0.0]*n_sample
         self.Cd_GA = [0.0]*n_sample
         self.Cm_GA = [0.0]*n_sample
@@ -434,6 +523,8 @@ class GeneteticAlgolithm():
         self.CLCd_GA = [0.0]*n_sample
 
         for n in range(n_sample):
+            #-----重い処理なのでイベント処理を挟む
+            qapp.processEvents()
             self.thn_GA[n] = numpy.interp(thnpos,self.x[101:198],self.y_GA[n,101:198])-numpy.interp(thnpos,numpy.flipud(self.x[0:99]),numpy.flipud(self.y_GA[n,0:99]))
             #------xfoil analyze if thn_GA in correct range
             if self.thn_GA[n]<=thn*1.3 and self.thn_GA[n]>=thn*0.7 and self.hash_GA[n] not in self.hash_GA[n+1:n_sample] :
@@ -448,7 +539,7 @@ class GeneteticAlgolithm():
                     fname = "a0_pwrt.dat"
                     foil = "xfoil.foil"
                     ps = subprocess.Popen(['xfoil.exe'],stdin=subprocess.PIPE,stdout=None,stderr=None)
-                    pipe = bytes("plop\n g\n\n load {load} \n oper\n visc {Re} \n iter 500\n pacc\n {filename} \n \n alfa{alpha}\n \n quit\n".format(load=foil,Re=Re,filename=fname,alpha=alpha),"ascii")
+                    pipe = bytes("plop\n g\n\n load {load} \n oper\n visc {Re} \n iter 100\n pacc\n {filename} \n \n alfa{alpha}\n \n quit\n".format(load=foil,Re=Re,filename=fname,alpha=alpha),"ascii")
                     res = ps.communicate(pipe)
 
 
@@ -460,8 +551,6 @@ class GeneteticAlgolithm():
 
                     if math.isnan(float(sum(anlydata))):
                         raise
-
-
 
                     self.CL_GA[n] = anlydata[1]
                     self.Cd_GA[n] = anlydata[2]
@@ -477,9 +566,6 @@ class GeneteticAlgolithm():
                 self.Cd_GA[n] = 100
                 self.Cm_GA[n] = -100
 
-
-
-
     def evaluete_cross(self):
         self.pfCd = 1
         self.pfCm = 0
@@ -491,7 +577,7 @@ class GeneteticAlgolithm():
             if self.thn_GA[n] >= thn:
                 self.Fcon[n] =(self.pfCd * 1 / self.Cd_GA[n] - self.pfCm * 1 / self.Cm_GA[n]) * numpy.exp(-self.pfthn * abs(self.thn_GA[n] - thn) - self.pfCL * abs(self.CL_GA[n] - CL))
             else:
-                self.Fcon[n] =(self.pfCd * 1 / self.Cd_GA[n] - self.pfCm * 1 / self.Cm_GA[n]) * numpy.exp(-self.pfthn * 1.2 * abs(self.thn_GA[n] - thn) - self.pfCL * abs(self.CL_GA[n] - CL))
+                self.Fcon[n] =(self.pfCd * 1 / self.Cd_GA[n] - self.pfCm * 1 / self.Cm_GA[n]) * numpy.exp(-self.pfthn * abs(self.thn_GA[n] - thn) - self.pfCL * abs(self.CL_GA[n] - CL))
         self.maxFconNo = self.Fcon.index(max(self.Fcon))
         self.CL = self.CL_GA[self.maxFconNo]
         self.Cd = self.Cd_GA[self.maxFconNo]
@@ -499,11 +585,9 @@ class GeneteticAlgolithm():
         self.thn = self.thn_GA[self.maxFconNo]
 
         #-----最大値の保存
-        if numpy.max(self.Fcon) > self.save_topValue:
+        if numpy.max(self.Fcon) > self.save_topValue and numpy.min(self.Cd) >= Cd_target:
             self.save_topValue = copy.deepcopy(self.Fcon[self.maxFconNo])
             self.save_top = copy.deepcopy(self.gene2[self.maxFconNo])
-            print("saved")
-            print(self.save_topValue)
 
         for n in range(n_sample):
             self.CLCd_GA[n] = self.CL_GA[n] / self.Cd_GA[n]
@@ -573,9 +657,8 @@ class GeneteticAlgolithm():
                 cross2a = self.gene2[couple_GA[n][1]][i][cross_point:12]
                 cross2b = self.gene2[couple_GA[n][1]][i][0:cross_point]
                 #print([cross1a,cross1b]
-                self.gene2[2*n][i] = cross1b+cross2a
-                self.gene2[2*n+1][i] = cross2b+cross1a
-        print(self.save_top)
+                self.gene2[2*n][i] = str(cross1b+cross2a)
+                self.gene2[2*n+1][i] = str(cross2b+cross1a)
         self.hash_GA = [0] * n_sample
         for n in range(n_sample):
             self.hash_GA[n] = str(hash(str(self.gene2[n])))
@@ -650,9 +733,11 @@ def main():
     input_widget = InputWidget(parent = input_data_panel)
     test = GeneteticAlgolithm()
     cfoil_widget = CalclatedFoilWidget(test,0,parent = input_data_panel)
+    dataplotwidget = DataPlotWidget(parent = input_data_panel)
     input_data_panel_layput = QtGui.QVBoxLayout()
     input_data_panel_layput.addWidget(input_widget)
     input_data_panel_layput.addWidget(cfoil_widget.itgcfw)
+    input_data_panel_layput.addWidget(dataplotwidget.main_widget)
     input_data_panel.setLayout(input_data_panel_layput)
 
     main_panel_layout = QtGui.QHBoxLayout()
@@ -672,7 +757,6 @@ def main():
 
     def be_default():
         input_widget.outputparameter()
-
         test.getFoilChord(basefoilpanel)
         test.defineFoil()
         test.default_gene()
@@ -687,11 +771,12 @@ def main():
         print("doing")
         test.gene2coeficient()
         test.coeficient2foil()
-        test.exeXFoil()
+        test.exeXFoil(qApp)
         test.evaluete_cross()
         cfoil_widget.replot(test,test.maxFconNo)
         print("done")
         print(test.sortedlist)
+        dataplotwidget.updata_dataplot(test)
 
     input_widget.connect(input_widget.default_button,QtCore.SIGNAL('clicked()'),be_default)
     input_widget.connect(input_widget.execute_button,QtCore.SIGNAL('clicked()'),exeGA)
