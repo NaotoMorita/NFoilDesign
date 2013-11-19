@@ -783,7 +783,7 @@ class GeneteticAlgolithm():
         #print(self.gene2)
         #print(self.coeficient_ratio)
         print(couple_GA)
-        print(self.surviveP)
+        print(self.gene2)
         #print(sumFcon)
         #print(numpy.max(self.Fcon))
         #print(sum(self.surviveP))
@@ -795,7 +795,7 @@ class GeneteticAlgolithm():
             if mutation <= 0.05:
                 i = random.randint(0,7)
                 print("mutation is happened")
-                rand_i = random.randint(1,10)
+                rand_i = random.randint(2,9)
                 if self.gene2[n][i][rand_i] == "0":
                     temp = self.gene2[n][i][0:rand_i]
                     self.gene2[n][i] = temp + "1"*(11-i)
