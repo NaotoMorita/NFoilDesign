@@ -370,6 +370,46 @@ class DataPlotWidget(QtGui.QWidget):
 
 
 
+class DataPlotWidget(QtGui.QWidget):
+    def __init__(self,parent = None):
+        QtGui.QWidget.__init__(self, parent = parent)
+
+        self.main_widget = QtGui.QWidget(parent = self)
+        evo_widget = QtGui.QWidget(parent = self.main_widget)
+
+        self.Fconplot = DataPlot(parent = self.main_widget)
+        self.Fconplot.compute_initial_figure()
+        self.evo_CLCDplot = DataPlot(parent = evo_widget)
+        self.evo_CLCDplot.compute_initial_figure()
+        self.evo_thnplot = DataPlot(parent = evo_widget)
+        self.evo_thnplot.compute_initial_figure()
+
+
+
+
+        evo_widget_layout = QtGui.QVBoxLayout()
+        evo_widget_layout.addWidget(self.evo_CLCDplot)
+        evo_widget_layout.addWidget(self.evo_thnplot)
+        evo_widget.setLayout(evo_widget_layout)
+
+        main_widget_layout = QtGui.QHBoxLayout()
+        main_widget_layout.addWidget(self.Fconplot)
+        main_widget_layout.addWidget(evo_widget)
+        self.main_widget.setLayout(main_widget_layout)
+
+    def updata_dataplot(self,ga):
+        self.Fconplot.datax = range(n_sample,0,-1)
+        self.Fconplot.datay = ga.sortedlist[:,0]
+        self.Fconplot.update_figure()
+        self.evo_CLCDplot.datax = range(n_sample,0,-1)
+        self.evo_CLCDplot.datay = ga.sortedlist[:,1]
+        self.evo_CLCDplot.update_figure()
+        self.evo_thnplot.datax = range(n_sample,0,-1)
+        self.evo_thnplot.datay = ga.sortedlist[:,2]
+        self.evo_thnplot.update_figure(ylim = [0,0.25])
+
+
+
 
 
 class GeneteticAlgolithm():
