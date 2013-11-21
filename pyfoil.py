@@ -69,6 +69,8 @@ class FoilPlot(Matplot):
     def update_figure(self):
         self.load()
         self.axes.plot(self.Fx, self.Fy)
+        self.axes.set_xlim([-0.04,1.1])
+        self.axes.set_ylim([-0.03,0.17])
         self.draw()
 
 
@@ -114,7 +116,7 @@ def main():
     panel_layout.addWidget(foillabel)
     panel_layout.addWidget(button_panel)
     panel.setLayout(panel_layout)
-    panel.setFixedSize(600,200)
+    #panel.setFixedSize(600,200)
 
 
     def changelabel():
