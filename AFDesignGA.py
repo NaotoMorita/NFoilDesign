@@ -60,9 +60,13 @@ class FoilPlot(Matplot):
     def __init__(self, *args, **kwargs):
         Matplot.__init__(self, *args, **kwargs)
 
+
     def compute_initial_figure(self):
         self.filename = "dae31.dat"
-        foil = numpy.loadtxt(self.filename,skiprows=1)
+        if not self.filename:
+            foil = numpy.array([[0.0,0.0],[0.0,0.0]])
+        else:
+            foil = numpy.loadtxt(self.filename,skiprows=1)
         self.Fx = foil[:,0]
         self.Fy = foil[:,1]
         self.axes.plot(self.Fx, self.Fy)
@@ -78,7 +82,10 @@ class FoilPlot(Matplot):
 
     def load(self):
         self.filename = QtGui.QFileDialog.getOpenFileName()
-        foil = numpy.loadtxt(self.filename,skiprows=1)
+        if not self.filename:
+            foil = numpy.array([[0.0,0.0],[0.0,0.0]])
+        else:
+            foil = numpy.loadtxt(self.filename,skiprows=1)
         self.Fx = foil[:,0]
         self.Fy = foil[:,1]
 
@@ -481,6 +488,20 @@ class TitleExeStopProgressWidget(QtGui.QWidget):
         self.setLayout(self.layout)
 
         #世代表示
+
+class RollbackDialog(QtGui.QWidget):
+    def __init__(self,parent = None):
+        QtGui.QWidget.__init__(self, parent = parent)
+        self.setWindowTitle("Rollback")
+        self.okbutton = QtGui.QPushButton("はい")
+        self.quitbutton = QtGui.QPushButton("いいえ")
+        self.combobox = QtGui.QComboBox()
+
+        self.layout = QtGui.QHBoxLayout()
+        self.layout.addWidget(self.combobox)
+        self.layout.addWidget(self.okbutton)
+        self.layout.addWidget(self.quitbutton)
+        self.setLayout(self.layout)
 
 
 
@@ -900,9 +921,11 @@ def main():
 
         while test.generation < max_generation:
             qApp.processEvents()
+
             if test.run !=0 and test.run !=2 :
                 break
             test.generation += 1
+
             if test.generation == 1:
                 titleexeprogress.generation.setText("  Generation : None / ")
                 global n_sample
@@ -930,14 +953,16 @@ def main():
                     test.evaluete_cross(input_widget,test.generation)
                     cfoil_widget.replot(test,test.maxFconNo)
                     dataplotwidget.update_dataplot(test,test.generation)
-
-
+            if test.run ==0 or test.run ==2 :
+                rollbackwidget.combobox.addItems(str(test.generation))
             max_generation = int(titleexeprogress.inputgeneration.text())
     def startGA():
         test.generation = 0
         test.run = 0
-        titleexeprogress.exebutton.setText("START From Zero")
+        titleexeprogress.exebutton.setText("EXE From Zero")
         titleexeprogress.stopbutton.setText("STOP")
+        rollbackwidget.combobox.clear()
+        cfoil_widget.rollbackbutton.setEnabled(False)
         exeGA()
 
     def stopGA():
@@ -945,11 +970,14 @@ def main():
             print("stop")
             test.run = 1
             titleexeprogress.stopbutton.setText("RESUME")
+            cfoil_widget.rollbackbutton.setEnabled(True)
         else:
             print("resume")
             test.run = 2
             test.generation -= 1
             titleexeprogress.stopbutton.setText("STOP")
+            cfoil_widget.rollbackbutton.setEnabled(False)
+
             exeGA()
 
     def quitGA():
@@ -960,7 +988,16 @@ def main():
         print("output")
 
     def rollback():
-        print("rollback")
+        print(test.save_topValue)
+        rollbacgeneration = int(rollbackwidget.combobox.currentText())
+        test.save_top = test.history_top[rollbacgeneration-1]
+        test.save_topValue = test.history_topValue[rollbacgeneration-1]
+        print(test.save_topValue)
+        rollbackwidget.close()
+
+
+
+
 
     qApp = QtGui.QApplication(sys.argv)
     main_window=QtGui.QMainWindow()
@@ -990,6 +1027,8 @@ def main():
     main_panel_layout.addWidget(basefoilpanel.basepanel)
     main_panel.setLayout(main_panel_layout)
 
+    rollbackwidget = RollbackDialog()
+
     main_window.setCentralWidget(main_panel)
     main_window.setWindowTitle("AFDesign -GA-")
     main_window.showMaximized()
@@ -997,9 +1036,13 @@ def main():
     titleexeprogress.connect(titleexeprogress.exebutton,QtCore.SIGNAL('clicked()'),startGA)
     titleexeprogress.connect(titleexeprogress.stopbutton,QtCore.SIGNAL('clicked()'),stopGA)
     cfoil_widget.connect(cfoil_widget.outputbutton,QtCore.SIGNAL('clicked()'),outputfoil)
-    cfoil_widget.connect(cfoil_widget.rollbackbutton,QtCore.SIGNAL('clicked()'),rollback)
+    cfoil_widget.connect(cfoil_widget.rollbackbutton,QtCore.SIGNAL('clicked()'),rollbackwidget.show)
+    #cfoil_widget.connect(cfoil_widget.rollbackbutton,QtCore.SIGNAL('clicked()'))
+    rollbackwidget.connect(rollbackwidget.quitbutton,QtCore.SIGNAL("clicked()"),rollbackwidget.close)
+    rollbackwidget.connect(rollbackwidget.okbutton,QtCore.SIGNAL("clicked()"),rollback)
 
-    qApp.connect(qApp,QtCore.SIGNAL("lastWindowClosed()"),quitGA)
+    qApp.connect(qApp,QtCore.SIGNAL("Closed()"),quitGA)
+    qApp.connect(qApp,QtCore.SIGNAL("Closed()"),rollbackwidget.close)
     sys.exit(qApp.exec_())
 
 if __name__ == '__main__':
