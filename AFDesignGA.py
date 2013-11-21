@@ -668,6 +668,7 @@ class GeneteticAlgolithm():
             #-----重い処理なのでイベント処理を挟む
             titleexeprogress.progressbar.setValue(int(n/(n_sample-1)*100))
             qapp.processEvents()
+            print(self.run)
             if self.run != 0 and self.run !=2 :
                 break
 
@@ -981,7 +982,7 @@ def main():
             exeGA()
 
     def quitGA():
-            test.run = 1
+        test.run = 1
 
 
     def outputfoil():
@@ -1041,8 +1042,10 @@ def main():
     rollbackwidget.connect(rollbackwidget.quitbutton,QtCore.SIGNAL("clicked()"),rollbackwidget.close)
     rollbackwidget.connect(rollbackwidget.okbutton,QtCore.SIGNAL("clicked()"),rollback)
 
-    qApp.connect(qApp,QtCore.SIGNAL("Closed()"),quitGA)
-    qApp.connect(qApp,QtCore.SIGNAL("Closed()"),rollbackwidget.close)
+    qApp.connect(qApp,QtCore.SIGNAL("close()"),rollbackwidget.close)
+    qApp.connect(qApp,QtCore.SIGNAL("close()"),quitGA)
+    qApp.connect(qApp,QtCore.SIGNAL("lastWindowClosed()"),quitGA)
+    qApp.connect(qApp,QtCore.SIGNAL("lastWindowClosed()"),rollbackwidget.close)
     sys.exit(qApp.exec_())
 
 if __name__ == '__main__':
