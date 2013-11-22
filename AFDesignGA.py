@@ -71,6 +71,17 @@ class FoilPlot(Matplot):
         self.Fy = foil[:,1]
         self.axes.plot(self.Fx, self.Fy)
 
+    def compute_initial_figure2(self):
+        self.filename = "dae31.dat"
+        if not self.filename:
+            foil = numpy.array([[0.0,0.0],[0.0,0.0]])
+        else:
+            foil = numpy.loadtxt(self.filename,skiprows=1)
+        self.Fx = foil[:,0]
+        self.Fy = foil[:,1]
+        self.axes.plot(self.Fx, self.Fy)
+        self.draw()
+
     def update_figure(self):
         self.load()
         self.axes.plot(self.Fx, self.Fy)
@@ -115,10 +126,16 @@ class BaseFoilWidget(QtGui.QWidget):
     def __init__(self,parent = None):
         QtGui.QWidget.__init__(self, parent = parent)
 
+        font = QtGui.QFont()
+        font.setPointSize(12)
 
         self.basepanel = QtGui.QGroupBox("Base Airfoil",parent = self)
+        self.basepanel.setFont(font)
         self.basepanel.setMinimumSize(150,600)
         self.basepanel.setMaximumSize(400,2000)
+
+
+
 
 
 
@@ -127,7 +144,9 @@ class BaseFoilWidget(QtGui.QWidget):
         self.no1.showfoil = FoilPlot(parent = self.no1)
 
         self.no1.setTitle("Foil No.1 - {foilname}".format(foilname = os.path.basename(self.no1.showfoil.filename)))
+        self.no1.setFont(font)
         self.no1.openbutton = QtGui.QPushButton("OPEN Foil No.1")
+        self.no1.openbutton.setFont(font)
         self.no1.layout = QtGui.QVBoxLayout()
         self.no1.layout.addWidget(self.no1.showfoil)
         self.no1.layout.addWidget(self.no1.openbutton)
@@ -194,11 +213,15 @@ class BaseFoilWidget(QtGui.QWidget):
     def updatefigure_changelabel_no4(self):
         self.no4.showfoil.update_figure()
         self.no4.setTitle("Foil No.4 - {foilname}".format(foilname = os.path.basename(self.no4.showfoil.filename)))
+
         #self.no4.foilnamelabel.setText(os.path.basename(self.no4.showfoil.filename))
 
 class CalclatedFoilWidget(QtGui.QWidget):
     def __init__(self,ga,foilno = 0,parent = None):
         QtGui.QWidget.__init__(self, parent = parent)
+        font = QtGui.QFont()
+        font.setPointSize(12)
+
 
         self.itgcfw = QtGui.QWidget(parent = self)
         self.itgcfw.setMinimumSize(500,150)
@@ -211,14 +234,20 @@ class CalclatedFoilWidget(QtGui.QWidget):
         self.datapanel = QtGui.QWidget(parent = self.itgcfw)
         self.CLlabel = QtGui.QLabel()
         self.CLlabel.setText("揚力係数CL : {CL}    抗力係数Cd(*10000) : {Cd}    揚抗比CL/Cd : {CLCd}    モーメント係数Cm : {Cm}     翼厚 : {thn:4}".format(CL = round(ga.CL, 4), Cd = "NaN", CLCd = "NaN",Cm = "Nan", thn = "NaN"))
-
+        self.CLlabel.setFont(font)
         self.outputbutton = QtGui.QPushButton("EXPORT FOIL",parent = self.datapanel)
-        self.outputbutton.setFixedWidth(90)
-        self.rollbackbutton = QtGui.QPushButton("ROLL BACK",parent = self.datapanel)
-        self.rollbackbutton.setFixedWidth(90)
+        self.outputbutton.setFont(font)
+
+        self.outputbutton.setFixedWidth(150)
+        self.rollbackbutton = QtGui.QPushButton("RESTART the point",parent = self.datapanel)
+        self.rollbackbutton.setFont(font)
+        self.rollbackbutton.setFixedWidth(150)
+        self.combobox = QtGui.QComboBox()
+        self.combobox.setFixedWidth(40)
 
         datapanel_layout = QtGui.QHBoxLayout()
         datapanel_layout.addWidget(self.CLlabel)
+        datapanel_layout.addWidget(self.combobox)
         datapanel_layout.addWidget(self.outputbutton)
         datapanel_layout.addWidget(self.rollbackbutton)
         self.datapanel.setLayout(datapanel_layout)
@@ -232,14 +261,14 @@ class CalclatedFoilWidget(QtGui.QWidget):
         self.cfw.Fx = ga.x
         self.cfw.Fy = ga.y_GA[foilno]
         self.cfw.update_figure2()
-        self.CLlabel.setText("CL : {CL:5}    Cd(count) : {Cd:4}    CL/Cd : {CLCd:4}    Cm : {Cm}     Thickness : {thn:4}".format(CL = round(ga.CL, 4), Cd = round(ga.Cd * 10000,1), CLCd = round(ga.CL/ga.Cd,1),Cm = round(ga.Cm,4), thn = round(ga.thn * 100,4)))
+        self.CLlabel.setText("CL : {CL:5}    Cd(count) : {Cd:4}    CL/Cd : {CLCd:4}    Cm : {Cm}     翼厚 : {thn:4}".format(CL = round(ga.CL, 4), Cd = round(ga.Cd * 10000,1), CLCd = round(ga.CL/ga.Cd,1),Cm = round(ga.Cm,4), thn = round(ga.thn * 100,4)))
 
 class Inputtarget_Setbutton_Widget(QtGui.QWidget):
     def __init__(self,parent = None,):
         QtGui.QWidget.__init__(self, parent = parent)
 
-        self.basecontener = QtGui.QGroupBox("設計パラメータ",parent = self)
-
+        self.basecontener = QtGui.QFrame(parent = self)
+        self.basecontener.setFrameStyle(QtGui.QFrame.Panel | QtGui.QFrame.Sunken);
         self.inputwidget = QtGui.QWidget(parent =self.basecontener)
 
         self.inputwidget.inputalpha = QtGui.QLineEdit(parent = self)
@@ -247,14 +276,14 @@ class Inputtarget_Setbutton_Widget(QtGui.QWidget):
         self.inputwidget.inputalpha.setFixedWidth(35)
         self.inputwidget.inputalpha.Normal = 4
         self.inputwidget.label_alpha = QtGui.QLabel(parent = self)
-        self.inputwidget.label_alpha.setText("迎角 (deg):")
+        self.inputwidget.label_alpha.setText("設計パラメータ  迎角 (deg) :")
 
 
         self.inputwidget.inputRe = QtGui.QLineEdit(parent = self)
         self.inputwidget.inputRe.setText('500000')
         self.inputwidget.inputRe.setFixedWidth(50)
         self.inputwidget.label_Re = QtGui.QLabel(parent = self)
-        self.inputwidget.label_Re.setText("  Reynolds数.:")
+        self.inputwidget.label_Re.setText("  Reynolds数 :")
 
 
         self.inputwidget.inputCL = QtGui.QLineEdit(parent = self)
@@ -268,19 +297,19 @@ class Inputtarget_Setbutton_Widget(QtGui.QWidget):
         self.inputwidget.inputthn.setText('11')
         self.inputwidget.inputthn.setFixedWidth(30)
         self.inputwidget.label_thn = QtGui.QLabel(parent = self)
-        self.inputwidget.label_thn.setText("  翼厚 (%):")
+        self.inputwidget.label_thn.setText("  翼厚 (%) :")
 
         self.inputwidget.inputthnpos = QtGui.QLineEdit(parent = self)
         self.inputwidget.inputthnpos.setText('36')
         self.inputwidget.inputthnpos.setFixedWidth(30)
         self.inputwidget.label_thnpos = QtGui.QLabel(parent = self)
-        self.inputwidget.label_thnpos.setText("  翼厚計算位置 (%):")
+        self.inputwidget.label_thnpos.setText("  翼厚計算位置 (%) :")
 
         self.inputwidget.inputminCd = QtGui.QLineEdit(parent = self)
         self.inputwidget.inputminCd.setText('75')
         self.inputwidget.inputminCd.setFixedWidth(20)
         self.inputwidget.label_minCd = QtGui.QLabel(parent = self)
-        self.inputwidget.label_minCd.setText("  抗力係数下限 (count):")
+        self.inputwidget.label_minCd.setText("  抗力係数下限 (count) :")
 
 
 
@@ -347,6 +376,20 @@ class Inputtarget_Setbutton_Widget(QtGui.QWidget):
         self.basecontener.setLayout(self.basecontener.layout)
 
 
+        font = QtGui.QFont()
+        font.setPointSize(12)
+        self.inputwidget.label_alpha.setFont(font)
+        self.inputwidget.label_CL.setFont(font)
+        self.inputwidget.label_Re.setFont(font)
+        self.inputwidget.label_thn.setFont(font)
+        self.inputwidget.label_thnpos.setFont(font)
+        self.inputwidget.label_minCd.setFont(font)
+        self.inputevafunc.text1.setFont(font)
+        self.inputevafunc.text2.setFont(font)
+        self.inputevafunc.text3.setFont(font)
+        self.inputevafunc.text4.setFont(font)
+        self.inputevafunc.text5.setFont(font)
+
 
 
 class DataPlotWidget(QtGui.QWidget):
@@ -396,6 +439,8 @@ class DataPlotWidget(QtGui.QWidget):
         self.main_widget.setLayout(main_widget_layout)
 
     def update_dataplot(self,ga,generation):
+
+
         self.Fconplot.datax = range(n_sample,0,-1)
         self.Fconplot.datay = ga.sortedlist[:,0]
         self.Fconplot.update_figure(ylabel = "Value of Evaluating Function",xlabel = "Individual")
@@ -410,8 +455,6 @@ class DataPlotWidget(QtGui.QWidget):
         self.conv_thnplot.update_figure(ylim = [ga.thn_forplot*70,ga.thn_forplot*130] ,ylabel = "Thickness",xlabel = "Individual")
 
         self.evo_Fconplot.datax = ga.history_generation
-        print(ga.history_Fcon)
-        print(ga.history_generation)
 
         self.evo_Fconplot.datay = ga.history_Fcon
         self.evo_Fconplot.update_figure(ylabel = "Val of VF",xlabel = "Generation")
@@ -423,15 +466,20 @@ class DataPlotWidget(QtGui.QWidget):
 
         self.evo_thnplot.update_figure(ylabel = "thickness(%)",xlabel = "Generation")
 
+
+
 class TitleExeStopProgressWidget(QtGui.QWidget):
     def __init__(self,parent = None):
         QtGui.QWidget.__init__(self, parent = parent)
         self.second = QtGui.QWidget(parent = self)
         self.titleprogress = QtGui.QWidget(parent = self)
 
-        self.title = QtGui.QLabel(("<font size = 10> AFDesign </font> <font size = 5> -AirFoil Design Tool with Genetic Algorithm-  </font>"))
+        self.title = QtGui.QLabel(("<font size = 10> XGAG </font> <font size = 5> -Genetic Algorithm Gui airfoil design tool-  </font>"))
         self.progressbar = QtGui.QProgressBar(parent = self.titleprogress)
         self.progressbar.setFixedSize(300,30)
+
+        font = QtGui.QFont()
+        font.setPointSize(12)
 
         DEFAULT_STYLE = """
         QProgressBar{
@@ -450,12 +498,14 @@ class TitleExeStopProgressWidget(QtGui.QWidget):
 
         self.indno = QtGui.QLabel(parent = self.second)
         self.indno.setText("個体数 : ")
+        self.indno.setFont(font)
         self.inputindno = QtGui.QLineEdit(parent = self.second)
         self.inputindno.setFixedWidth(30)
         self.inputindno.setText("200")
 
         self.generation = QtGui.QLabel(parent = self.second)
         self.generation.setText("  世代 : None / ")
+        self.generation.setFont(font)
         self.inputgeneration = QtGui.QLineEdit(parent = self.second)
         self.inputgeneration.setFixedWidth(30)
         self.inputgeneration.setText("50")
@@ -464,8 +514,11 @@ class TitleExeStopProgressWidget(QtGui.QWidget):
 
 
 
-        self.exebutton = QtGui.QPushButton("EXECUTE")
+        self.exebutton = QtGui.QPushButton("START")
+        self.exebutton.setFixedWidth(120)
+        self.exebutton.setFont(font)
         self.stopbutton = QtGui.QPushButton("STOP")
+        self.stopbutton.setFont(font)
 
         self.second.layout = QtGui.QHBoxLayout()
         self.second.layout.addStretch(1)
@@ -487,23 +540,6 @@ class TitleExeStopProgressWidget(QtGui.QWidget):
         self.layout.addWidget(self.second)
         self.setLayout(self.layout)
 
-        #世代表示
-
-class RollbackDialog(QtGui.QWidget):
-    def __init__(self,parent = None):
-        QtGui.QWidget.__init__(self, parent = parent)
-        self.setWindowTitle("Rollback")
-        self.okbutton = QtGui.QPushButton("はい")
-        self.quitbutton = QtGui.QPushButton("いいえ")
-        self.combobox = QtGui.QComboBox()
-
-        self.layout = QtGui.QHBoxLayout()
-        self.layout.addWidget(self.combobox)
-        self.layout.addWidget(self.okbutton)
-        self.layout.addWidget(self.quitbutton)
-        self.setLayout(self.layout)
-
-
 
 
 class GeneteticAlgolithm():
@@ -521,6 +557,9 @@ class GeneteticAlgolithm():
             self.generation = 0
             self.history_topValue = [0]
             self.history_top = [0]
+            self.save_topValue = [0]
+            self.save_top = [0]
+            self.n = 0
 
     def getFoilChord(self,other):
         self.no1x = other.no1.showfoil.Fx
@@ -605,7 +644,7 @@ class GeneteticAlgolithm():
                 self.gene2[n][i] = str(bin(self.parameter10[n][i]))[2:].zfill(12)
             self.hash_GA[n] = str(hash(str(self.gene2[n])))
 
-        self.save_topValue = 0
+
 
     def gene2coeficient(self):
         self.coeficient_ratio = [0]*n_sample
@@ -614,6 +653,7 @@ class GeneteticAlgolithm():
             self.coeficient_ratio[n] = [0,0,0,0,0,0,0,0]
             self.coeficient[n] = [0,0,0,0,0,0,0,0]
             for i in range(8):
+                print(self.gene2[n][i])
                 self.coeficient_ratio[n][i] = float(int(self.gene2[n][i],2) / 4095)
 
             self.coeficient[n][0] = 2*self.coeficient_ratio[n][0]-1
@@ -668,14 +708,12 @@ class GeneteticAlgolithm():
             #-----重い処理なのでイベント処理を挟む
             titleexeprogress.progressbar.setValue(int(n/(n_sample-1)*100))
             qapp.processEvents()
-            print(self.run)
             if self.run != 0 and self.run !=2 :
                 break
 
             self.thn_GA[n] = numpy.interp(thnpos,self.x[101:198],self.y_GA[n,101:198])-numpy.interp(thnpos,numpy.flipud(self.x[0:99]),numpy.flipud(self.y_GA[n,0:99]))
             #------xfoil analyze if thn_GA in correct range
             if self.thn_GA[n]<=thn*1.3 and self.thn_GA[n]>=thn*0.7 and self.hash_GA[n] not in self.hash_GA[n+1:n_sample] :
-                print(n)
                 fid = open("xfoil.foil",'w')
                 fid.write("xfoil\n")
                 for i in range(numpy.shape(self.x)[0]):
@@ -742,7 +780,6 @@ class GeneteticAlgolithm():
 
 
         if generation == 1:
-            print("out")
             self.history_Fcon = numpy.array([0.0],dtype = "f")
             self.history_CL = numpy.array([0.0],dtype = "f")
             self.history_Cd = numpy.array([0.0],dtype = "f")
@@ -761,9 +798,6 @@ class GeneteticAlgolithm():
 
 
 
-        print(self.history_generation)
-        print(self.history_thn)
-        print("generation")
         int(generation)
         self.history_Fcon[generation-1] = copy.deepcopy(self.Fcon[self.maxFconNo])
         self.history_CL[generation-1] = copy.deepcopy(self.CL_GA[self.maxFconNo])
@@ -788,8 +822,7 @@ class GeneteticAlgolithm():
 
         self.history_topValue[generation-1] = copy.deepcopy(self.save_topValue)
         self.history_top[generation-1] = copy.deepcopy(self.save_top)
-        print("historiy")
-        print(self.history_top)
+
 
 
         #-----ソート
@@ -839,9 +872,6 @@ class GeneteticAlgolithm():
                     if fatum > sum(self.surviveP[0:i]) and fatum <= sum(self.surviveP[0:i+1]) :
                         couple_GA[couple][1] = i
                         break
-                elif i==n_sample-1:
-                    couple_GA[couple][1] = n_sample-1
-                    print('bug')
                 else:
                     if fatum < self.surviveP[0]:
                         couple_GA[couple][1] = i
@@ -851,16 +881,16 @@ class GeneteticAlgolithm():
         for n in range(int(n_sample/2)):
             for i in range(8):
                 cross_point = random.randint(1,10)
-                #print(cross_point)
+
 
                 cross1a = self.gene2[couple_GA[n][0]][i][cross_point:12]
                 cross1b = self.gene2[couple_GA[n][0]][i][0:cross_point]
                 cross2a = self.gene2[couple_GA[n][1]][i][cross_point:12]
                 cross2b = self.gene2[couple_GA[n][1]][i][0:cross_point]
-                #print([cross1a,cross1b]
+
                 self.gene2[2*n][i] = str(cross1b+cross2a).zfill(12)
 
-                self.gene2[2*n+1][i] = str(cross2b+cross1a)
+                self.gene2[2*n+1][i] = str(cross2b+cross1a).zfill(12)
 
         self.hash_GA = [0] * n_sample
         for n in range(n_sample):
@@ -871,7 +901,7 @@ class GeneteticAlgolithm():
             mutation = random.random()
             if mutation <= 0.07:
                 i = random.randint(0,7)
-                print("mutation is happened")
+
                 rand_i = random.randint(2,9)
                 if self.gene2[n][i][rand_i] == "0":
                     temp = self.gene2[n][i][0:rand_i]
@@ -917,135 +947,205 @@ class GeneteticAlgolithm():
 def main():
 
     def exeGA():
+        titleexeprogress.stopbutton.setDisabled(0)
         max_generation = int(titleexeprogress.inputgeneration.text())
+        print(ga.generation)
+        print(max_generation)
+
+        if ga.generation < max_generation:
+            while ga.generation < max_generation:
+                qApp.processEvents()
+
+                if ga.run !=0 and ga.run !=2 :
+                    break
+                ga.generation += 1
+
+                if ga.generation == 1:
+                    titleexeprogress.generation.setText("  Generation : None / ")
+                    global n_sample
+                    n_sample = int(titleexeprogress.inputindno.text())
+                    titleexeprogress.inputindno.setDisabled(1)
+
+                    ga.getFoilChord(basefoilpanel)
+                    ga.defineFoil()
+                    ga.default_gene()
+                    ga.gene2coeficient()
+                    ga.coeficient2foil()
+                    ga.exeXFoil(qApp,titleexeprogress,input_widget)
+
+                    if ga.run == 0 or ga.run == 2:
+                        ga.evaluete_cross(input_widget,ga.generation)
+                        cfoil_widget.replot(ga,ga.maxFconNo)
+                        dataplotwidget.update_dataplot(ga,ga.generation)
+                else:
+                    titleexeprogress.generation.setText("Generation : {fgene} / ".format(fgene = ga.generation-1))
+                    ga.gene2coeficient()
+                    ga.coeficient2foil()
+                    ga.exeXFoil(qApp,titleexeprogress,input_widget)
+                    if ga.run == 0 or ga.run == 2:
+                        ga.evaluete_cross(input_widget,ga.generation)
+                        cfoil_widget.replot(ga,ga.maxFconNo)
+                        dataplotwidget.update_dataplot(ga,ga.generation)
+                if ga.run ==0 or ga.run ==2 :
+                    cfoil_widget.combobox.addItem(str(ga.generation))
+                max_generation = int(titleexeprogress.inputgeneration.text())
+                if ga.generation == max_generation:
+                    titleexeprogress.generation.setText("Generation : {fgene} / ".format(fgene = ga.generation))
+                    titleexeprogress.stopbutton.setText("RESUME")
+                    ga.run = 1
+                    ga.generation += 1
+                    cfoil_widget.rollbackbutton.setEnabled(True)
+                    cfoil_widget.outputbutton.setEnabled(True)
+                    cfoil_widget.combobox.setEnabled(True)
+        else:
+            ga.generation += 1
 
 
-        while test.generation < max_generation:
-            qApp.processEvents()
 
-            if test.run !=0 and test.run !=2 :
-                break
-            test.generation += 1
 
-            if test.generation == 1:
-                titleexeprogress.generation.setText("  Generation : None / ")
-                global n_sample
-                n_sample = int(titleexeprogress.inputindno.text())
-                titleexeprogress.inputindno.setDisabled(1)
 
-                test.getFoilChord(basefoilpanel)
-                test.defineFoil()
-                test.default_gene()
-                test.gene2coeficient()
-                test.coeficient2foil()
-                test.exeXFoil(qApp,titleexeprogress,input_widget)
-                print("generation")
-                print(test.generation)
-                if test.run == 0 or test.run == 2:
-                    test.evaluete_cross(input_widget,test.generation)
-                    cfoil_widget.replot(test,test.maxFconNo)
-                    dataplotwidget.update_dataplot(test,test.generation)
-            else:
-                titleexeprogress.generation.setText("Generation : {fgene} / ".format(fgene = test.generation-1))
-                test.gene2coeficient()
-                test.coeficient2foil()
-                test.exeXFoil(qApp,titleexeprogress,input_widget)
-                if test.run == 0 or test.run == 2:
-                    test.evaluete_cross(input_widget,test.generation)
-                    cfoil_widget.replot(test,test.maxFconNo)
-                    dataplotwidget.update_dataplot(test,test.generation)
-            if test.run ==0 or test.run ==2 :
-                rollbackwidget.combobox.addItems(str(test.generation))
-            max_generation = int(titleexeprogress.inputgeneration.text())
     def startGA():
-        test.generation = 0
-        test.run = 0
-        titleexeprogress.exebutton.setText("EXE From Zero")
+        ga.generation = 0
+        ga.run = 0
+        ga.save_top = [0]
+        ga.save_topValue = [0]
+        titleexeprogress.exebutton.setText("RESTART zero")
+        font = QtGui.QFont()
+        font.setPointSize(12)
+        titleexeprogress.exebutton.setFont(font)
+
         titleexeprogress.stopbutton.setText("STOP")
-        rollbackwidget.combobox.clear()
+        titleexeprogress.stopbutton.setFont(font)
         cfoil_widget.rollbackbutton.setEnabled(False)
+        cfoil_widget.outputbutton.setEnabled(False)
+        cfoil_widget.combobox.setEnabled(False)
+        cfoil_widget.combobox.clear()
         exeGA()
 
     def stopGA():
-        if test.run == 0 or test.run == 2:
-            print("stop")
-            test.run = 1
+        if ga.run == 0 or ga.run == 2 :
+
+            ga.run = 1
             titleexeprogress.stopbutton.setText("RESUME")
             cfoil_widget.rollbackbutton.setEnabled(True)
-        else:
-            print("resume")
-            test.run = 2
-            test.generation -= 1
+            cfoil_widget.outputbutton.setEnabled(True)
+            cfoil_widget.combobox.setEnabled(True)
+        elif ga.generation != int(titleexeprogress.inputgeneration.text())+1:
+            ga.run = 2
+            ga.generation -= 1
             titleexeprogress.stopbutton.setText("STOP")
             cfoil_widget.rollbackbutton.setEnabled(False)
+            cfoil_widget.outputbutton.setEnabled(False)
+            cfoil_widget.combobox.setEnabled(False)
 
             exeGA()
 
     def quitGA():
-        test.run = 1
+        ga.run = 1
 
 
-    def outputfoil():
-        print("output")
+    def newproject():
+        basefoilpanel.no1.showfoil.filename = "dae31.dat"
+        basefoilpanel.no1.showfoil.compute_initial_figure2()
+        basefoilpanel.no1.setTitle("Foil No.1 - {foilname}".format(foilname = os.path.basename(basefoilpanel.no1.showfoil.filename)))
+        basefoilpanel.no2.showfoil.filename = "dae31.dat"
+        basefoilpanel.no2.showfoil.compute_initial_figure2()
+        basefoilpanel.no2.setTitle("Foil No.2 - {foilname}".format(foilname = os.path.basename(basefoilpanel.no2.showfoil.filename)))
+        basefoilpanel.no3.showfoil.filename = "dae31.dat"
+        basefoilpanel.no3.showfoil.compute_initial_figure2()
+        basefoilpanel.no3.setTitle("Foil No.3 - {foilname}".format(foilname = os.path.basename(basefoilpanel.no3.showfoil.filename)))
+        basefoilpanel.no4.showfoil.filename = "dae31.dat"
+        basefoilpanel.no4.showfoil.compute_initial_figure2()
+        basefoilpanel.no4.setTitle("Foil No.4 - {foilname}".format(foilname = os.path.basename(basefoilpanel.no4.showfoil.filename)))
+
+        ga.save_top = [0]
+        ga.save_topValue = [0]
+
+        titleexeprogress.exebutton.setText("START")
+        titleexeprogress.stopbutton.setText("STOP")
+
+        input_widget.inputwidget.inputCL.setText('1.3')
+        input_widget.inputwidget.inputRe.setText('500000')
+        input_widget.inputwidget.inputthn.setText('11')
+        input_widget.inputwidget.inputthnpos.setText('36')
+        input_widget.inputwidget.inputminCd.setText('75')
+
+        titleexeprogress.inputindno.setDisabled(0)
+        titleexeprogress.stopbutton.setDisabled(1)
+        cfoil_widget.rollbackbutton.setEnabled(True)
+        cfoil_widget.outputbutton.setEnabled(True)
+        cfoil_widget.combobox.setEnabled(True)
+
+        titleexeprogress.progressbar.reset()
+        cfoil_widget.CLlabel.setText("揚力係数CL : {CL}    抗力係数Cd(*10000) : {Cd}    揚抗比CL/Cd : {CLCd}    モーメント係数Cm : {Cm}     翼厚 : {thn:4}".format(CL = 0, Cd = "NaN", CLCd = "NaN",Cm = "Nan", thn = "NaN"))
+
+
+
 
     def rollback():
-        print(test.save_topValue)
-        rollbacgeneration = int(rollbackwidget.combobox.currentText())
-        test.save_top = test.history_top[rollbacgeneration-1]
-        test.save_topValue = test.history_topValue[rollbacgeneration-1]
-        print(test.save_topValue)
-        rollbackwidget.close()
+        rollbacgeneration = int(cfoil_widget.combobox.currentText())
+        ga.save_top = ga.history_top[rollbacgeneration-1]
+        ga.save_topValue = ga.history_topValue[rollbacgeneration-1]
+        ga.gene2[n_sample-1] = copy.deepcopy(ga.save_top)
 
 
 
 
 
     qApp = QtGui.QApplication(sys.argv)
-    main_window=QtGui.QMainWindow()
-    main_window.setSizePolicy(QtGui.QSizePolicy.Preferred,QtGui.QSizePolicy.Preferred)
 
+
+#インスタンスの作成
+    #メインウィンドウ
+    main_window=QtGui.QMainWindow()
+
+    #メインウィンドウにそのまま貼り付けるウィジット
     main_panel = QtGui.QWidget()
 
+#---------初期化のための再実行ここから
+    #GA実行インスタンス
+    ga = GeneteticAlgolithm()
+
+    #右側の翼型選択ウィジット
     basefoilpanel = BaseFoilWidget(parent = main_panel)
 
+    #左側の側のデータ表示ウィジット
     input_data_panel = QtGui.QWidget()
 
+    #データ表示ウィジットの中身
     input_widget = Inputtarget_Setbutton_Widget(parent = input_data_panel)
-    test = GeneteticAlgolithm()
-    cfoil_widget = CalclatedFoilWidget(test,0,parent = input_data_panel)
+    cfoil_widget = CalclatedFoilWidget(ga,0,parent = input_data_panel)
     dataplotwidget = DataPlotWidget(parent = input_data_panel)
     titleexeprogress = TitleExeStopProgressWidget(parent = input_data_panel)
-
+    titleexeprogress.stopbutton.setDisabled(1)
+    #データ表示ウィジットのレイアウト
     input_data_panel_layput = QtGui.QVBoxLayout()
     input_data_panel_layput.addWidget(titleexeprogress)
     input_data_panel_layput.addWidget(input_widget.basecontener)
     input_data_panel_layput.addWidget(cfoil_widget.itgcfw)
     input_data_panel_layput.addWidget(dataplotwidget.main_widget)
     input_data_panel.setLayout(input_data_panel_layput)
+#---------初期化のための再実行ここまで
 
+    #メインパネルのレイアウト
     main_panel_layout = QtGui.QHBoxLayout()
     main_panel_layout.addWidget(input_data_panel)
     main_panel_layout.addWidget(basefoilpanel.basepanel)
     main_panel.setLayout(main_panel_layout)
 
-    rollbackwidget = RollbackDialog()
-
+    #メインウィンドウの設定
     main_window.setCentralWidget(main_panel)
-    main_window.setWindowTitle("AFDesign -GA-")
+    main_window.setWindowTitle("XGAG")
+    main_window.setSizePolicy(QtGui.QSizePolicy.Preferred,QtGui.QSizePolicy.Preferred)
     main_window.showMaximized()
 
+    #シグナルの設定
     titleexeprogress.connect(titleexeprogress.exebutton,QtCore.SIGNAL('clicked()'),startGA)
     titleexeprogress.connect(titleexeprogress.stopbutton,QtCore.SIGNAL('clicked()'),stopGA)
-    cfoil_widget.connect(cfoil_widget.outputbutton,QtCore.SIGNAL('clicked()'),outputfoil)
-    cfoil_widget.connect(cfoil_widget.rollbackbutton,QtCore.SIGNAL('clicked()'),rollbackwidget.show)
-    #cfoil_widget.connect(cfoil_widget.rollbackbutton,QtCore.SIGNAL('clicked()'))
-    rollbackwidget.connect(rollbackwidget.quitbutton,QtCore.SIGNAL("clicked()"),rollbackwidget.close)
-    rollbackwidget.connect(rollbackwidget.okbutton,QtCore.SIGNAL("clicked()"),rollback)
+    cfoil_widget.connect(cfoil_widget.outputbutton,QtCore.SIGNAL('clicked()'),newproject)
+    cfoil_widget.connect(cfoil_widget.rollbackbutton,QtCore.SIGNAL('clicked()'),rollback)
 
-    qApp.connect(qApp,QtCore.SIGNAL("close()"),rollbackwidget.close)
-    qApp.connect(qApp,QtCore.SIGNAL("close()"),quitGA)
     qApp.connect(qApp,QtCore.SIGNAL("lastWindowClosed()"),quitGA)
-    qApp.connect(qApp,QtCore.SIGNAL("lastWindowClosed()"),rollbackwidget.close)
     sys.exit(qApp.exec_())
 
 if __name__ == '__main__':
