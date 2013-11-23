@@ -95,7 +95,6 @@ class FoilPlot(Matplot):
         self.foildirectory = fid.readline()
         self.foildirectory = self.foildirectory.rstrip("\n")
         fid.close()
-        print(self.foildirectory)
         self.filename = QtGui.QFileDialog.getOpenFileName(parent = None,caption = "OPEN FOIL" ,directory=self.foildirectory, filter="Foil Chord File(*.dat *.txt)")
         if not self.filename:
             foil = numpy.array([[0.0,0.0],[0.0,0.0]])
@@ -660,7 +659,6 @@ class GeneteticAlgolithm():
             self.coeficient_ratio[n] = [0,0,0,0,0,0,0,0]
             self.coeficient[n] = [0,0,0,0,0,0,0,0]
             for i in range(8):
-                print(self.gene2[n][i])
                 self.coeficient_ratio[n][i] = float(int(self.gene2[n][i],2) / 4095)
 
             self.coeficient[n][0] = 2*self.coeficient_ratio[n][0]-1
@@ -730,13 +728,19 @@ class GeneteticAlgolithm():
                 try:
                     fname = "a0_pwrt.dat"
                     foil = "xfoil.foil"
-                    ps = subprocess.Popen(['xfoil.exe'],stdin=subprocess.PIPE,stdout=None,stderr=None)
-                    pipe = bytes("plop\n g\n\n load {load} \n oper\n visc {Re} \n iter 100\n pacc\n {filename} \n \n alfa{alpha}\n \n quit\n".format(load=foil,Re=Re,filename=fname,alpha=alpha),"ascii")
+                    startupinfo = subprocess.STARTUPINFO()
+                    startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+
+
+
+                    ps = subprocess.Popen(['xfoil.exe'],stdin=subprocess.PIPE,stdout=None,stderr=None,startupinfo=startupinfo)
+                    pipe = bytes("\nplop\n g\n\n load {load} \n oper\n visc {Re} \n iter 100\n pacc\n {filename} \n \n alfa{alpha}\n \n quit\n".format(load=foil,Re=Re,filename=fname,alpha=alpha),"ascii")
                     res = ps.communicate(pipe)
 
 
                     #----read XFoil Poler
                     anlydata = numpy.loadtxt(fname,skiprows=12)
+
                     if len(anlydata.shape)==2:
                         anlydata = analydata[-1,:]
                     os.remove(fname)
@@ -938,7 +942,7 @@ class Foils_Default_Change(QtGui.QWidget):
         QtGui.QWidget.__init__(self, parent = parent)
         self.read_init_file()
 
-        self.foildirectory = os.path.join(os.getcwd(),"FOILS")
+        self.foildirectory = ""
         self.default_no1 = ""
         self.default_no2 = ""
         self.default_no3 = ""
@@ -948,17 +952,14 @@ class Foils_Default_Change(QtGui.QWidget):
         try:
             fidr = open("default.ini",'r')
         except IOError:
-            self.foildirectory = os.path.join(os.getcwd(),"FOILS")
+            self.foildirectory = "FOILS"
             self.default_no1 = ""
             self.default_no2 = ""
             self.default_no3 = ""
             self.default_no4 = ""
             self.wirte_init_file()
-            if not os.path.exists(self.foildirectory):
-                os.mkdir(self.foildirectory)
-                print("a")
-            else:
-                print('b')
+            if not os.path.exists("FOILS"):
+                os.mkdir("FOILS")
 
         else:
             self.foildirectory = fidr.readline()
@@ -972,7 +973,6 @@ class Foils_Default_Change(QtGui.QWidget):
             self.default_no4 = fidr.readline()
             self.default_no4 = self.default_no4.rstrip("\n")
             fidr.close()
-        print(self.default_no4)
 
 
     def wirte_init_file(self):
@@ -1018,6 +1018,7 @@ class Foils_Default_Change(QtGui.QWidget):
 
 
         self.dialog = QtGui.QWidget(parent = None)
+        self.dialog.setFixedSize(700,400)
 
         self.defaultdirectory = QtGui.QGroupBox("翼型保存フォルダ",parent = self.dialog)
         self.defaultdirectory.setFont(font)
@@ -1145,8 +1146,6 @@ def main():
     def exeGA():
         titleexeprogress.stopbutton.setDisabled(0)
         max_generation = int(titleexeprogress.inputgeneration.text())
-        print(ga.generation)
-        print(max_generation)
 
         if ga.generation < max_generation:
             while ga.generation < max_generation:
@@ -1241,17 +1240,13 @@ def main():
 
 
     def newproject():
-        basefoilpanel.no1.showfoil.filename = "dae31.dat"
-        basefoilpanel.no1.showfoil.compute_initial_figure2()
+        basefoilpanel.no1.showfoil.compute_initial_figure2(default.default_no1)
         basefoilpanel.no1.setTitle("Foil No.1 - {foilname}".format(foilname = os.path.basename(basefoilpanel.no1.showfoil.filename)))
-        basefoilpanel.no2.showfoil.filename = "dae31.dat"
-        basefoilpanel.no2.showfoil.compute_initial_figure2()
+        basefoilpanel.no2.showfoil.compute_initial_figure2(default.default_no2)
         basefoilpanel.no2.setTitle("Foil No.2 - {foilname}".format(foilname = os.path.basename(basefoilpanel.no2.showfoil.filename)))
-        basefoilpanel.no3.showfoil.filename = "dae31.dat"
-        basefoilpanel.no3.showfoil.compute_initial_figure2()
+        basefoilpanel.no3.showfoil.compute_initial_figure2(default.default_no3)
         basefoilpanel.no3.setTitle("Foil No.3 - {foilname}".format(foilname = os.path.basename(basefoilpanel.no3.showfoil.filename)))
-        basefoilpanel.no4.showfoil.filename = "dae31.dat"
-        basefoilpanel.no4.showfoil.compute_initial_figure2()
+        basefoilpanel.no4.showfoil.compute_initial_figure2(default.default_no4)
         basefoilpanel.no4.setTitle("Foil No.4 - {foilname}".format(foilname = os.path.basename(basefoilpanel.no4.showfoil.filename)))
 
         ga.save_top = [0]
