@@ -1,12 +1,12 @@
 ﻿#-------------------------------------------------------------------------------
-# Name:AFDesginGA(airFoil Design with Optimizing Methods)
+# Name:XGAG (XFOIL Genetic Algorithm Gui airfoil design tool)
 # Purpose:AirFoil Design
 #
 # Author:      NaotoMORITA
 #
-# Created:     09/11/2013
+# Created:     10/31/2013
 # Copyright:   (c) NaotoMORITA 2013
-# Licence:     <your licence>
+# Licence:     GPL
 #-------------------------------------------------------------------------------
 
 #-*- coding: utf-8 -*-
@@ -41,7 +41,6 @@ class Matplot(matplotlib.backends.backend_qt4agg.FigureCanvasQTAgg):
         self.axes.hold(False)
         self.axes.set_aspect("equal")
         self.axes.set_xlim(0,1)
-        self.compute_initial_figure()
 
         matplotlib.backends.backend_qt4agg.FigureCanvasQTAgg.__init__(self, fig)
         self.setParent(parent)
@@ -57,12 +56,12 @@ class Matplot(matplotlib.backends.backend_qt4agg.FigureCanvasQTAgg):
 
 class FoilPlot(Matplot):
     """A canvas that updates itself every second with a new plot."""
-    def __init__(self, *args, **kwargs):
+    def __init__(self,default, *args, **kwargs):
         Matplot.__init__(self, *args, **kwargs)
+        self.foildirectory = default.foildirectory
 
-
-    def compute_initial_figure(self):
-        self.filename = "dae31.dat"
+    def compute_initial_figure(self,default_foil):
+        self.filename = default_foil
         if not self.filename:
             foil = numpy.array([[0.0,0.0],[0.0,0.0]])
         else:
@@ -71,8 +70,8 @@ class FoilPlot(Matplot):
         self.Fy = foil[:,1]
         self.axes.plot(self.Fx, self.Fy)
 
-    def compute_initial_figure2(self):
-        self.filename = "dae31.dat"
+    def compute_initial_figure2(self,default_foil):
+        self.filename = default_foil
         if not self.filename:
             foil = numpy.array([[0.0,0.0],[0.0,0.0]])
         else:
@@ -92,7 +91,12 @@ class FoilPlot(Matplot):
         self.draw()
 
     def load(self):
-        self.filename = QtGui.QFileDialog.getOpenFileName()
+        fid = open("default.ini",'r')
+        self.foildirectory = fid.readline()
+        self.foildirectory = self.foildirectory.rstrip("\n")
+        fid.close()
+        print(self.foildirectory)
+        self.filename = QtGui.QFileDialog.getOpenFileName(parent = None,caption = "OPEN FOIL" ,directory=self.foildirectory, filter="Foil Chord File(*.dat *.txt)")
         if not self.filename:
             foil = numpy.array([[0.0,0.0],[0.0,0.0]])
         else:
@@ -123,7 +127,7 @@ class DataPlot(Matplot):
         self.draw()
 
 class BaseFoilWidget(QtGui.QWidget):
-    def __init__(self,parent = None):
+    def __init__(self,default,parent = None):
         QtGui.QWidget.__init__(self, parent = parent)
 
         font = QtGui.QFont()
@@ -141,8 +145,8 @@ class BaseFoilWidget(QtGui.QWidget):
 
 #第1翼型
         self.no1 = QtGui.QGroupBox(parent = self.basepanel)
-        self.no1.showfoil = FoilPlot(parent = self.no1)
-
+        self.no1.showfoil = FoilPlot(default,parent = self.no1)
+        self.no1.showfoil.compute_initial_figure(default.default_no1)
         self.no1.setTitle("Foil No.1 - {foilname}".format(foilname = os.path.basename(self.no1.showfoil.filename)))
         self.no1.setFont(font)
         self.no1.openbutton = QtGui.QPushButton("OPEN Foil No.1")
@@ -154,7 +158,8 @@ class BaseFoilWidget(QtGui.QWidget):
 
 #第2翼型
         self.no2 = QtGui.QGroupBox("Foil No.2",parent = self.basepanel)
-        self.no2.showfoil = FoilPlot(parent = self.no2)
+        self.no2.showfoil = FoilPlot(default, parent = self.no2)
+        self.no2.showfoil.compute_initial_figure(default.default_no2)
         self.no2.setTitle("Foil No.2 - {foilname}".format(foilname = os.path.basename(self.no2.showfoil.filename)))
         self.no2.openbutton = QtGui.QPushButton("OPEN Foil No.2")
         self.no2.layout = QtGui.QVBoxLayout()
@@ -164,7 +169,8 @@ class BaseFoilWidget(QtGui.QWidget):
 
 #第3翼型
         self.no3 = QtGui.QGroupBox("Foil No.3",parent = self.basepanel)
-        self.no3.showfoil = FoilPlot(parent = self.no3)
+        self.no3.showfoil = FoilPlot(default, parent = self.no3)
+        self.no3.showfoil.compute_initial_figure(default.default_no3)
         self.no3.setTitle("Foil No.3 - {foilname}".format(foilname = os.path.basename(self.no3.showfoil.filename)))
         self.no3.openbutton = QtGui.QPushButton("OPEN Foil No.3")
         self.no3.layout = QtGui.QVBoxLayout()
@@ -174,7 +180,8 @@ class BaseFoilWidget(QtGui.QWidget):
 
 #第4翼型
         self.no4 = QtGui.QGroupBox("Foil No.4",parent = self.basepanel)
-        self.no4.showfoil = FoilPlot(parent = self.no4)
+        self.no4.showfoil = FoilPlot(default, parent = self.no4)
+        self.no4.showfoil.compute_initial_figure(default.default_no4)
         self.no4.setTitle("Foil No.4 - {foilname}".format(foilname = os.path.basename(self.no4.showfoil.filename)))
         self.no4.openbutton = QtGui.QPushButton("OPEN Foil No.4")
         self.no4.layout = QtGui.QVBoxLayout()
@@ -217,7 +224,7 @@ class BaseFoilWidget(QtGui.QWidget):
         #self.no4.foilnamelabel.setText(os.path.basename(self.no4.showfoil.filename))
 
 class CalclatedFoilWidget(QtGui.QWidget):
-    def __init__(self,ga,foilno = 0,parent = None):
+    def __init__(self, default, ga, foilno = 0, parent = None):
         QtGui.QWidget.__init__(self, parent = parent)
         font = QtGui.QFont()
         font.setPointSize(12)
@@ -226,10 +233,10 @@ class CalclatedFoilWidget(QtGui.QWidget):
         self.itgcfw = QtGui.QWidget(parent = self)
         self.itgcfw.setMinimumSize(500,150)
 
-        self.cfw = FoilPlot(parent = self.itgcfw)
+        self.cfw = FoilPlot(default, parent = self.itgcfw)
         self.cfw.Fx = ga.x
         self.cfw.Fy = ga.y_GA[foilno,:]
-        self.cfw.compute_initial_figure()
+        self.cfw.compute_initial_figure("")
 
         self.datapanel = QtGui.QWidget(parent = self.itgcfw)
         self.CLlabel = QtGui.QLabel()
@@ -239,7 +246,7 @@ class CalclatedFoilWidget(QtGui.QWidget):
         self.outputbutton.setFont(font)
 
         self.outputbutton.setFixedWidth(150)
-        self.rollbackbutton = QtGui.QPushButton("RESTART the point",parent = self.datapanel)
+        self.rollbackbutton = QtGui.QPushButton("Elite REVERT",parent = self.datapanel)
         self.rollbackbutton.setFont(font)
         self.rollbackbutton.setFixedWidth(150)
         self.combobox = QtGui.QComboBox()
@@ -751,6 +758,7 @@ class GeneteticAlgolithm():
                 self.Cd_GA[n] = 100
                 self.Cm_GA[n] = -100
 
+
     def evaluete_cross(self,evafunc,generation):
         self.pfCd = float(evafunc.inputevafunc.P1.text())
         self.pfCm = float(evafunc.inputevafunc.P2.text())
@@ -912,6 +920,189 @@ class GeneteticAlgolithm():
 
         self.gene2[n_sample-1] = copy.deepcopy(self.save_top)
 
+class Export_Filt_Foil():
+    def __init__(self,generation):
+        pass
+
+    def filt_foil(self,filt_iter):
+        pass
+
+    def getfoilname(self):
+        pass
+
+    def export_foil(self):
+        pass
+
+class Foils_Default_Change(QtGui.QWidget):
+    def __init__(self,parent = None):
+        QtGui.QWidget.__init__(self, parent = parent)
+        self.read_init_file()
+
+        self.foildirectory = os.path.join(os.getcwd(),"FOILS")
+        self.default_no1 = ""
+        self.default_no2 = ""
+        self.default_no3 = ""
+        self.default_no4 = ""
+
+    def read_init_file(self):
+        try:
+            fidr = open("default.ini",'r')
+        except IOError:
+            self.foildirectory = os.path.join(os.getcwd(),"FOILS")
+            self.default_no1 = ""
+            self.default_no2 = ""
+            self.default_no3 = ""
+            self.default_no4 = ""
+            self.wirte_init_file()
+
+        else:
+            self.foildirectory = fidr.readline()
+            self.foildirectory = self.foildirectory.rstrip("\n")
+            self.default_no1 = fidr.readline()
+            self.default_no1 = self.default_no1.rstrip("\n")
+            self.default_no2 = fidr.readline()
+            self.default_no2 = self.default_no2.rstrip("\n")
+            self.default_no3 = fidr.readline()
+            self.default_no3 = self.default_no3.rstrip("\n")
+            self.default_no4 = fidr.readline()
+            self.default_no4 = self.default_no4.rstrip("\n")
+            fidr.close()
+        print(self.default_no4)
+
+
+    def wirte_init_file(self):
+        fidw = open("default.ini",'w')
+        fidw.write("{dir}\n{no1}\n{no2}\n{no3}\n{no4}\n".format(dir = self.foildirectory, no1 = self.default_no1, no2 = self.default_no2, no3 = self.default_no3, no4 = self.default_no4))
+        fidw.close()
+
+
+    def change_dialog(self):
+        font = QtGui.QFont()
+        font.setPointSize(12)
+        def change_dir():
+            self.foildirectory = QtGui.QFileDialog.getExistingDirectory(parent = None,caption = "FOIL Directory" ,directory=self.foildirectory)
+            if not self.foildirectory:
+                self.foildirectory = os.path.join(os.getcwd(),"FOILS")
+            self.defaultdirectory.current_dir_show.setText(self.foildirectory)
+            self.defaultdirectory.current_dir_show.setFont(font)
+
+            self.wirte_init_file()
+
+        def change_foil_no1():
+            self.default_no1 = QtGui.QFileDialog.getOpenFileName(parent = None,caption = "OPEN FOIL" ,directory=self.foildirectory, filter="Foil Chord File(*.dat *.txt)")
+            self.defaultfoil.no1.currentfoil.setText(self.default_no1)
+            self.defaultfoil.no1.currentfoil.setFont(font)
+            self.wirte_init_file()
+
+        def change_foil_no2():
+            self.default_no2 = QtGui.QFileDialog.getOpenFileName(parent = None,caption = "OPEN FOIL" ,directory=self.foildirectory, filter="Foil Chord File(*.dat *.txt)")
+            self.defaultfoil.no2.currentfoil.setText(self.default_no2)
+            self.defaultfoil.no2.currentfoil.setFont(font)
+            self.wirte_init_file()
+
+        def change_foil_no3():
+            self.default_no3 = QtGui.QFileDialog.getOpenFileName(parent = None,caption = "OPEN FOIL" ,directory=self.foildirectory, filter="Foil Chord File(*.dat *.txt)")
+            self.defaultfoil.no3.currentfoil.setText(self.default_no3)
+            self.defaultfoil.no3.currentfoil.setFont(font)
+            self.wirte_init_file()
+
+        def change_foil_no4():
+            self.default_no4 = QtGui.QFileDialog.getOpenFileName(parent = None,caption = "OPEN FOIL" ,directory=self.foildirectory, filter="Foil Chord File(*.dat *.txt)")
+            self.defaultfoil.no4.currentfoil.setText(self.default_no4)
+            self.wirte_init_file()
+
+
+        self.dialog = QtGui.QWidget(parent = None)
+
+        self.defaultdirectory = QtGui.QGroupBox("翼型保存フォルダ",parent = self.dialog)
+        self.defaultdirectory.setFont(font)
+        self.defaultdirectory.current_dir_show = QtGui.QLabel(parent = self.defaultdirectory)
+        self.defaultdirectory.current_dir_show.setText(self.foildirectory)
+        self.defaultdirectory.changebutton = QtGui.QPushButton("変更",parent = self.defaultdirectory)
+        self.defaultdirectory.changebutton.setFixedWidth(50)
+        self.defaultdirectory.layout = QtGui.QHBoxLayout()
+        self.defaultdirectory.layout.addWidget(self.defaultdirectory.current_dir_show)
+        self.defaultdirectory.layout.addWidget(self.defaultdirectory.changebutton)
+        self.defaultdirectory.setLayout(self.defaultdirectory.layout)
+
+        self.defaultfoil = QtGui.QGroupBox("デフォルト翼型")
+        self.defaultfoil.setFont(font)
+
+
+        self.defaultfoil.no1 =QtGui.QGroupBox("No.1")
+        self.defaultfoil.no1.setFont(font)
+        self.defaultfoil.no2 =QtGui.QGroupBox("No.2")
+        self.defaultfoil.no2.setFont(font)
+        self.defaultfoil.no3 =QtGui.QGroupBox("No.3")
+        self.defaultfoil.no3.setFont(font)
+        self.defaultfoil.no4 =QtGui.QGroupBox("No.4")
+        self.defaultfoil.no4.setFont(font)
+
+        self.defaultfoil.no1.currentfoil = QtGui.QLabel(parent = self.defaultfoil.no1)
+        self.defaultfoil.no1.currentfoil.setText(self.default_no1)
+        self.defaultfoil.no1.currentfoil.setFont(font)
+        self.defaultfoil.no1.changebutton = QtGui.QPushButton("変更",parent = self.defaultfoil.no1)
+        self.defaultfoil.no1.changebutton.setFixedWidth(50)
+
+        self.defaultfoil.no2.currentfoil = QtGui.QLabel(parent = self.defaultfoil.no2)
+        self.defaultfoil.no2.currentfoil.setText(self.default_no2)
+        self.defaultfoil.no2.currentfoil.setFont(font)
+        self.defaultfoil.no2.changebutton = QtGui.QPushButton("変更",parent = self.defaultfoil.no2)
+        self.defaultfoil.no2.changebutton.setFixedWidth(50)
+
+        self.defaultfoil.no3.currentfoil = QtGui.QLabel(parent = self.defaultfoil.no3)
+        self.defaultfoil.no3.currentfoil.setText(self.default_no3)
+        self.defaultfoil.no3.currentfoil.setFont(font)
+        self.defaultfoil.no3.changebutton = QtGui.QPushButton("変更",parent = self.defaultfoil.no3)
+        self.defaultfoil.no3.changebutton.setFixedWidth(50)
+
+        self.defaultfoil.no4.currentfoil = QtGui.QLabel(parent = self.defaultfoil.no4)
+        self.defaultfoil.no4.currentfoil.setText(self.default_no4)
+        self.defaultfoil.no4.currentfoil.setFont(font)
+        self.defaultfoil.no4.changebutton = QtGui.QPushButton("変更",parent = self.defaultfoil.no4)
+        self.defaultfoil.no4.changebutton.setFixedWidth(50)
+
+        self.defaultfoil.no1.layout = QtGui.QHBoxLayout()
+        self.defaultfoil.no1.layout.addWidget(self.defaultfoil.no1.currentfoil)
+        self.defaultfoil.no1.layout.addWidget(self.defaultfoil.no1.changebutton)
+        self.defaultfoil.no1.setLayout(self.defaultfoil.no1.layout)
+
+        self.defaultfoil.no2.layout = QtGui.QHBoxLayout()
+        self.defaultfoil.no2.layout.addWidget(self.defaultfoil.no2.currentfoil)
+        self.defaultfoil.no2.layout.addWidget(self.defaultfoil.no2.changebutton)
+        self.defaultfoil.no2.setLayout(self.defaultfoil.no2.layout)
+
+        self.defaultfoil.no3.layout = QtGui.QHBoxLayout()
+        self.defaultfoil.no3.layout.addWidget(self.defaultfoil.no3.currentfoil)
+        self.defaultfoil.no3.layout.addWidget(self.defaultfoil.no3.changebutton)
+        self.defaultfoil.no3.setLayout(self.defaultfoil.no3.layout)
+
+        self.defaultfoil.no4.layout = QtGui.QHBoxLayout()
+        self.defaultfoil.no4.layout.addWidget(self.defaultfoil.no4.currentfoil)
+        self.defaultfoil.no4.layout.addWidget(self.defaultfoil.no4.changebutton)
+        self.defaultfoil.no4.setLayout(self.defaultfoil.no4.layout)
+
+        self.defaultfoil.layout = QtGui.QVBoxLayout()
+        self.defaultfoil.layout.addWidget(self.defaultfoil.no1)
+        self.defaultfoil.layout.addWidget(self.defaultfoil.no2)
+        self.defaultfoil.layout.addWidget(self.defaultfoil.no3)
+        self.defaultfoil.layout.addWidget(self.defaultfoil.no4)
+
+        self.defaultfoil.setLayout(self.defaultfoil.layout)
+
+        self.dialog.layout = QtGui.QVBoxLayout()
+        self.dialog.layout.addWidget(self.defaultdirectory)
+        self.dialog.layout.addWidget(self.defaultfoil)
+        self.dialog.setLayout(self.dialog.layout)
+
+        self.dialog.connect(self.defaultdirectory.changebutton,QtCore.SIGNAL('clicked()'),change_dir)
+        self.dialog.connect(self.defaultfoil.no1.changebutton,QtCore.SIGNAL('clicked()'),change_foil_no1)
+        self.dialog.connect(self.defaultfoil.no2.changebutton,QtCore.SIGNAL('clicked()'),change_foil_no2)
+        self.dialog.connect(self.defaultfoil.no3.changebutton,QtCore.SIGNAL('clicked()'),change_foil_no3)
+        self.dialog.connect(self.defaultfoil.no4.changebutton,QtCore.SIGNAL('clicked()'),change_foil_no4)
+
+
+
 
 
 
@@ -1030,7 +1221,7 @@ def main():
             cfoil_widget.rollbackbutton.setEnabled(True)
             cfoil_widget.outputbutton.setEnabled(True)
             cfoil_widget.combobox.setEnabled(True)
-        elif ga.generation != int(titleexeprogress.inputgeneration.text())+1:
+        elif ga.generation < int(titleexeprogress.inputgeneration.text())+1:
             ga.run = 2
             ga.generation -= 1
             titleexeprogress.stopbutton.setText("STOP")
@@ -1079,18 +1270,26 @@ def main():
         titleexeprogress.progressbar.reset()
         cfoil_widget.CLlabel.setText("揚力係数CL : {CL}    抗力係数Cd(*10000) : {Cd}    揚抗比CL/Cd : {CLCd}    モーメント係数Cm : {Cm}     翼厚 : {thn:4}".format(CL = 0, Cd = "NaN", CLCd = "NaN",Cm = "Nan", thn = "NaN"))
 
-
-
-
     def rollback():
         rollbacgeneration = int(cfoil_widget.combobox.currentText())
-        ga.save_top = ga.history_top[rollbacgeneration-1]
-        ga.save_topValue = ga.history_topValue[rollbacgeneration-1]
+        ga.save_top = copy.deepcopy(ga.history_top[rollbacgeneration-1])
+        ga.save_topValue = copy.deepcopy(ga.history_topValue[rollbacgeneration-1])
         ga.gene2[n_sample-1] = copy.deepcopy(ga.save_top)
 
+    def expot_foil():
+        pass
 
+    def save_file():
+        pass
 
+    def open_file():
+        pass
 
+    def about_XGAG():
+        pass
+
+    def default_setting():
+        pass
 
     qApp = QtGui.QApplication(sys.argv)
 
@@ -1098,6 +1297,11 @@ def main():
 #インスタンスの作成
     #メインウィンドウ
     main_window=QtGui.QMainWindow()
+
+    #デフォルト値読込
+    default = Foils_Default_Change()
+    default.read_init_file()
+    default.change_dialog()
 
     #メインウィンドウにそのまま貼り付けるウィジット
     main_panel = QtGui.QWidget()
@@ -1107,14 +1311,14 @@ def main():
     ga = GeneteticAlgolithm()
 
     #右側の翼型選択ウィジット
-    basefoilpanel = BaseFoilWidget(parent = main_panel)
+    basefoilpanel = BaseFoilWidget(default, parent = main_panel)
 
     #左側の側のデータ表示ウィジット
     input_data_panel = QtGui.QWidget()
 
     #データ表示ウィジットの中身
     input_widget = Inputtarget_Setbutton_Widget(parent = input_data_panel)
-    cfoil_widget = CalclatedFoilWidget(ga,0,parent = input_data_panel)
+    cfoil_widget = CalclatedFoilWidget(default, ga, 0, parent = input_data_panel)
     dataplotwidget = DataPlotWidget(parent = input_data_panel)
     titleexeprogress = TitleExeStopProgressWidget(parent = input_data_panel)
     titleexeprogress.stopbutton.setDisabled(1)
@@ -1125,6 +1329,9 @@ def main():
     input_data_panel_layput.addWidget(cfoil_widget.itgcfw)
     input_data_panel_layput.addWidget(dataplotwidget.main_widget)
     input_data_panel.setLayout(input_data_panel_layput)
+
+
+
 #---------初期化のための再実行ここまで
 
     #メインパネルのレイアウト
@@ -1139,10 +1346,38 @@ def main():
     main_window.setSizePolicy(QtGui.QSizePolicy.Preferred,QtGui.QSizePolicy.Preferred)
     main_window.showMaximized()
 
+    #メニューバーの作成
+    menubar = main_window.menuBar()
+    filemenu = menubar.addMenu("File")
+    file_new = filemenu.addAction("&New")
+    file_new.setShortcut('Ctrl+N')
+    file_open = filemenu.addAction("&Open")
+    file_open.setShortcut('Ctrl+O')
+    file_save = filemenu.addAction("&Save")
+    file_save.setShortcut('Ctrl+S')
+    main_window.connect(file_new,QtCore.SIGNAL('triggered()'),newproject)
+
+    optionmenu = menubar.addMenu("Option")
+    defaultfoils = optionmenu.addAction("&Default Directory && Foils")
+    main_window.connect(defaultfoils,QtCore.SIGNAL('triggered()'),default.dialog.show)
+
+    aboutmenu = menubar.addMenu("About")
+    about_XGAG = aboutmenu.addAction("&About XGAG")
+    about_qt = aboutmenu.addAction("&About Qt")
+
+    main_window.connect(about_qt,QtCore.SIGNAL('triggered()'),qApp.aboutQt)
+
+
+
+
+
+
+
+
     #シグナルの設定
     titleexeprogress.connect(titleexeprogress.exebutton,QtCore.SIGNAL('clicked()'),startGA)
     titleexeprogress.connect(titleexeprogress.stopbutton,QtCore.SIGNAL('clicked()'),stopGA)
-    cfoil_widget.connect(cfoil_widget.outputbutton,QtCore.SIGNAL('clicked()'),newproject)
+    cfoil_widget.connect(cfoil_widget.outputbutton,QtCore.SIGNAL('clicked()'),expot_foil)
     cfoil_widget.connect(cfoil_widget.rollbackbutton,QtCore.SIGNAL('clicked()'),rollback)
 
     qApp.connect(qApp,QtCore.SIGNAL("lastWindowClosed()"),quitGA)
