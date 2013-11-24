@@ -518,10 +518,6 @@ class TitleExeStopProgressWidget(QtGui.QWidget):
         self.inputgeneration.setFixedWidth(30)
         self.inputgeneration.setText("50")
 
-
-
-
-
         self.exebutton = QtGui.QPushButton("START")
         self.exebutton.setFixedWidth(120)
         self.exebutton.setFont(font)
@@ -582,7 +578,7 @@ class GeneteticAlgolithm():
 
     def defineFoil(self):
         self.no = numpy.arange(0,101)
-        self.x = self.no * self.no / 10000
+        self.x = (self.no / 100) ** 1.5
 
         #-----finding foil Leading Edge テスト
         i = int(0)
@@ -667,7 +663,7 @@ class GeneteticAlgolithm():
             self.coefficient[n][1] = 2*self.coefficient_ratio[n][1]-1
             self.coefficient[n][2] = 2*self.coefficient_ratio[n][2]-1
             self.coefficient[n][3] = 2*self.coefficient_ratio[n][3]-1
-            self.coefficient[n][4] = 0.08*self.coefficient_ratio[n][4]-0.04  #zc
+            self.coefficient[n][4] = 0.05*self.coefficient_ratio[n][4]-0.025  #zc
             self.coefficient[n][5] = 0.25*self.coefficient_ratio[n][5]+0.25  #xc
             self.coefficient[n][6] = 6*self.coefficient_ratio[n][6]-3        #alphaTE
             self.coefficient[n][7] = 1.4*self.coefficient_ratio[n][7]+0.6    #Amplifying coefficient
@@ -764,6 +760,13 @@ class GeneteticAlgolithm():
                 self.Cd_GA[n] = 100
                 self.Cm_GA[n] = -100
 
+            if self.Cd_GA[n] <= Cd_target:
+                self.CL_GA[n] = 0
+                self.Cd_GA[n] = 100
+                self.Cm_GA[n] = -100
+
+
+
 
     def evaluete_cross(self,evafunc,generation):
         self.pfCd = float(evafunc.inputevafunc.P1.text())
@@ -823,7 +826,7 @@ class GeneteticAlgolithm():
 
 
         #-----最大値の保存
-        if numpy.max(self.Fcon) > self.save_topValue and numpy.min(self.Cd) >= Cd_target:
+        if numpy.max(self.Fcon) > self.save_topValue:
             self.save_topValue = copy.deepcopy(self.Fcon[self.maxFconNo])
             self.save_top = copy.deepcopy(self.gene2[self.maxFconNo])
 
@@ -938,14 +941,16 @@ class Export_Filt_Foil():
         for i in range(8):
             self.exprt_coefficient_ratio[i] = float(int(self.export_gene[i],2) / 4095)
 
+        #ここから　上のGenetic Algolithm内と必ず一致させること
         self.exprt_coefficient[0] = 2*self.exprt_coefficient_ratio[0]-1
         self.exprt_coefficient[1] = 2*self.exprt_coefficient_ratio[1]-1
         self.exprt_coefficient[2] = 2*self.exprt_coefficient_ratio[2]-1
         self.exprt_coefficient[3] = 2*self.exprt_coefficient_ratio[3]-1
-        self.exprt_coefficient[4] = 0.08*self.exprt_coefficient_ratio[4]-0.04  #zc
+        self.exprt_coefficient[4] = 0.05*self.exprt_coefficient_ratio[4]-0.025  #zc
         self.exprt_coefficient[5] = 0.25*self.exprt_coefficient_ratio[5]+0.25  #xc
         self.exprt_coefficient[6] = 6*self.exprt_coefficient_ratio[6]-3        #alphaTE
         self.exprt_coefficient[7] = 1.4*self.exprt_coefficient_ratio[7]+0.6    #Amplifying coefficient
+        #ここまで
 
         xc = self.exprt_coefficient[5]
         zc = self.exprt_coefficient[4]
@@ -964,25 +969,43 @@ class Export_Filt_Foil():
         self.export_y =(ga.y[0,:] * self.exprt_coefficient[0] + ga.y[1,:] * self.exprt_coefficient[1] + ga.y[2,:] * self.exprt_coefficient[2] + ga.y[3,:] * self.exprt_coefficient[3] + addcamber) * self.exprt_coefficient[7]
 
         fid = open("export.foil",'w')
-        fid.write("xfoil\n")
+        fid.write("export\n")
         for i in range(numpy.shape(self.export_x)[0]):
             fid.write(" {x_ele}  {y_ele} \n".format(x_ele = self.export_x[i], y_ele = self.export_y[i]))
         fid.close()
 
-    def filt_foil(self,filt_iter):
-        pass
+    def filt_foil(self,alpha):
+        foil = "export.foil"
+        startupinfo = subprocess.STARTUPINFO()
+        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
 
-    def getfoilname(self):
-        pass
+        ps = subprocess.Popen(['xfoil.exe'],stdin=subprocess.PIPE,stdout=None,stderr=None,startupinfo=startupinfo)
+        pipe = bytes("\nplop\n g\n\n load {load} \n oper\n alfa{alpha}\n \n mdes \n aq {alpha} \n filt \n exec\n\n pcop \n save export_filt.foil \n Y \n quit\n".format(load=foil,alpha=alpha),"ascii")
+        res = ps.communicate(pipe)
+
+        foil = numpy.loadtxt("export_filt.foil",skiprows=1)
+        self.export_x = foil[:,0]
+        self.export_y = foil[:,1]
 
     def do_export(self):
-        pass
+        fid = open(self.export_foilname,'w')
+        fid.write("{foilname}\n".format(foilname = os.path.splitext(os.path.basename(self.export_foilname))[0]))
+        for i in range(numpy.shape(self.export_x)[0]):
+            fid.write(" {x_ele}  {y_ele} \n".format(x_ele = self.export_x[i], y_ele = self.export_y[i]))
+        fid.close()
 
-    def dialog(self,cfoil_widget):
+    def dialog(self,cfoil_widget,input_widget,default):
         ret = QtGui.QMessageBox.question(None,"EXPORT Foil", "世代:{generation}を出力します\n速度分布の平滑化行いますか？".format(generation = int(cfoil_widget.combobox.currentText())),
                         QtGui.QMessageBox.Yes | QtGui.QMessageBox.No | QtGui.QMessageBox.Cancel,QtGui.QMessageBox.Yes)
         if ret == QtGui.QMessageBox.Yes:
-            print("OK")
+            self.export_foilname = QtGui.QFileDialog.getSaveFileName(None, caption = "EXPORT Foil(Filet)",directory = os.path.join(default.foildirectory,"XGAGf{generation}".format(generation = int(cfoil_widget.combobox.currentText()))), filter = "Foil Chord File(*.dat)") #option = "XGAGf{generation}".format(generation = int(cfoil_widget.combobox.currentText()) )
+            alpha = float(input_widget.inputwidget.inputalpha.text())
+            self.filt_foil(alpha)
+            self.do_export()
+        elif ret == QtGui.QMessageBox.No:
+            self.export_foilname = QtGui.QFileDialog.getSaveFileName(None, caption = "EXPORT Foil(Filet)",directory = os.path.join(default.foildirectory,"XGAGf{generation}".format(generation = int(cfoil_widget.combobox.currentText()))), filter = "Foil Chord File(*.dat)") #option = "XGAGf{generation}".format(generation = int(cfoil_widget.combobox.currentText()) )
+            self.do_export()
+
 
 
 
@@ -1162,43 +1185,11 @@ class Foils_Default_Change(QtGui.QWidget):
         self.dialog.connect(self.defaultfoil.no4.changebutton,QtCore.SIGNAL('clicked()'),change_foil_no4)
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 def main():
 
     def exeGA():
         titleexeprogress.stopbutton.setDisabled(0)
+        input_widget.inputwidget.inputalpha.setDisabled(1)
         max_generation = int(titleexeprogress.inputgeneration.text())
 
         if ga.generation < max_generation:
@@ -1319,6 +1310,7 @@ def main():
 
         titleexeprogress.inputindno.setDisabled(0)
         titleexeprogress.stopbutton.setDisabled(1)
+        input_widget.inputwidget.inputalpha.setDisabled(0)
         cfoil_widget.rollbackbutton.setEnabled(False)
         cfoil_widget.outputbutton.setEnabled(False)
         cfoil_widget.combobox.setEnabled(False)
@@ -1337,7 +1329,7 @@ def main():
 
     def expot_foil():
         export.gene2foil(ga,int(cfoil_widget.combobox.currentText()))
-        export.dialog(cfoil_widget)
+        export.dialog(cfoil_widget,input_widget,default)
 
     def save_file():
         pass
