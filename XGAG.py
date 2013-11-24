@@ -258,6 +258,8 @@ class CalclatedFoilWidget(QtGui.QWidget):
         datapanel_layout.addWidget(self.rollbackbutton)
         self.datapanel.setLayout(datapanel_layout)
 
+
+
         itgcfw_layout = QtGui.QVBoxLayout()
         itgcfw_layout.addWidget(self.cfw)
         itgcfw_layout.addWidget(self.datapanel)
@@ -510,7 +512,7 @@ class TitleExeStopProgressWidget(QtGui.QWidget):
         self.inputindno.setText("200")
 
         self.generation = QtGui.QLabel(parent = self.second)
-        self.generation.setText("  世代 : None / ")
+        self.generation.setText("  世代 : 0 / ")
         self.generation.setFont(font)
         self.inputgeneration = QtGui.QLineEdit(parent = self.second)
         self.inputgeneration.setFixedWidth(30)
@@ -653,32 +655,32 @@ class GeneteticAlgolithm():
 
 
     def gene2coeficient(self):
-        self.coeficient_ratio = [0]*n_sample
-        self.coeficient = [0]*n_sample
+        self.coefficient_ratio = [0]*n_sample
+        self.coefficient = [0]*n_sample
         for n in range(n_sample):
-            self.coeficient_ratio[n] = [0,0,0,0,0,0,0,0]
-            self.coeficient[n] = [0,0,0,0,0,0,0,0]
+            self.coefficient_ratio[n] = [0,0,0,0,0,0,0,0]
+            self.coefficient[n] = [0,0,0,0,0,0,0,0]
             for i in range(8):
-                self.coeficient_ratio[n][i] = float(int(self.gene2[n][i],2) / 4095)
+                self.coefficient_ratio[n][i] = float(int(self.gene2[n][i],2) / 4095)
 
-            self.coeficient[n][0] = 2*self.coeficient_ratio[n][0]-1
-            self.coeficient[n][1] = 2*self.coeficient_ratio[n][1]-1
-            self.coeficient[n][2] = 2*self.coeficient_ratio[n][2]-1
-            self.coeficient[n][3] = 2*self.coeficient_ratio[n][3]-1
-            self.coeficient[n][4] = 0.04*self.coeficient_ratio[n][4]-0.02  #zc
-            self.coeficient[n][5] = 0.25*self.coeficient_ratio[n][5]+0.25  #xc
-            self.coeficient[n][6] = 6*self.coeficient_ratio[n][6]-3        #alphaTE
-            self.coeficient[n][7] = 1.4*self.coeficient_ratio[n][7]+0.6    #Amplifying coeficient
+            self.coefficient[n][0] = 2*self.coefficient_ratio[n][0]-1
+            self.coefficient[n][1] = 2*self.coefficient_ratio[n][1]-1
+            self.coefficient[n][2] = 2*self.coefficient_ratio[n][2]-1
+            self.coefficient[n][3] = 2*self.coefficient_ratio[n][3]-1
+            self.coefficient[n][4] = 0.08*self.coefficient_ratio[n][4]-0.04  #zc
+            self.coefficient[n][5] = 0.25*self.coefficient_ratio[n][5]+0.25  #xc
+            self.coefficient[n][6] = 6*self.coefficient_ratio[n][6]-3        #alphaTE
+            self.coefficient[n][7] = 1.4*self.coefficient_ratio[n][7]+0.6    #Amplifying coefficient
 
     def coeficient2foil(self):
         #-----make add-camberline
         for n in range(n_sample):
-            xc = self.coeficient[n][5]
-            zc = self.coeficient[n][4]
-            alphaTE = self.coeficient[n][6]
+            xc = self.coefficient[n][5]
+            zc = self.coefficient[n][4]
+            alphaTE = self.coefficient[n][6]
 
             c_mat = numpy.arange(0, 4 * 4).reshape(4, 4) + numpy.identity(4)
-            cu_vector = numpy.array([[zc],[0.0],[0.0],[scipy.tan(alphaTE * scipy.pi/180)]])
+            cu_vector = numpy.array([[zc],[0.0],[0.0],[numpy.tan(alphaTE * scipy.pi/180)]])
             for m in range(4):
                 c_mat[0,m] = xc**(m+1)
                 c_mat[1,m] = xc**(m) * (m+1)
@@ -689,9 +691,9 @@ class GeneteticAlgolithm():
 
 
             if n == 0:
-                self.y_GA =( self.y[0,:] * self.coeficient[n][0] + self.y[1,:] * self.coeficient[n][1] + self.y[2,:] * self.coeficient[n][2] + self.y[3,:] * self.coeficient[n][3] + addcamber) * self.coeficient[n][7]
+                self.y_GA =( self.y[0,:] * self.coefficient[n][0] + self.y[1,:] * self.coefficient[n][1] + self.y[2,:] * self.coefficient[n][2] + self.y[3,:] * self.coefficient[n][3] + addcamber) * self.coefficient[n][7]
             else:
-                buff =( self.y[0,:] * self.coeficient[n][0] + self.y[1,:] * self.coeficient[n][1] + self.y[2,:] * self.coeficient[n][2] + self.y[3,:] * self.coeficient[n][3] + addcamber) * self.coeficient[n][7]
+                buff =( self.y[0,:] * self.coefficient[n][0] + self.y[1,:] * self.coefficient[n][1] + self.y[2,:] * self.coefficient[n][2] + self.y[3,:] * self.coefficient[n][3] + addcamber) * self.coefficient[n][7]
                 self.y_GA = numpy.vstack((self.y_GA,buff))
 
     def exeXFoil(self,qapp,titleexeprogress,evafunc):
@@ -925,8 +927,47 @@ class GeneteticAlgolithm():
         self.gene2[n_sample-1] = copy.deepcopy(self.save_top)
 
 class Export_Filt_Foil():
-    def __init__(self,generation):
-        pass
+    def __init__(self):
+        self.export_gene = [0,0,0,0,0,0,0,0]
+        self.exprt_coefficient_ratio = [0,0,0,0,0,0,0,0]
+        self.exprt_coefficient = [0,0,0,0,0,0,0,0]
+
+    def gene2foil(self,ga,generation):
+        self.export_gene = ga.history_top[generation-1]
+
+        for i in range(8):
+            self.exprt_coefficient_ratio[i] = float(int(self.export_gene[i],2) / 4095)
+
+        self.exprt_coefficient[0] = 2*self.exprt_coefficient_ratio[0]-1
+        self.exprt_coefficient[1] = 2*self.exprt_coefficient_ratio[1]-1
+        self.exprt_coefficient[2] = 2*self.exprt_coefficient_ratio[2]-1
+        self.exprt_coefficient[3] = 2*self.exprt_coefficient_ratio[3]-1
+        self.exprt_coefficient[4] = 0.08*self.exprt_coefficient_ratio[4]-0.04  #zc
+        self.exprt_coefficient[5] = 0.25*self.exprt_coefficient_ratio[5]+0.25  #xc
+        self.exprt_coefficient[6] = 6*self.exprt_coefficient_ratio[6]-3        #alphaTE
+        self.exprt_coefficient[7] = 1.4*self.exprt_coefficient_ratio[7]+0.6    #Amplifying coefficient
+
+        xc = self.exprt_coefficient[5]
+        zc = self.exprt_coefficient[4]
+        alphaTE = self.exprt_coefficient[6]
+
+        c_mat = numpy.arange(0, 4 * 4).reshape(4, 4) + numpy.identity(4)
+        cu_vector = numpy.array([[zc],[0.0],[0.0],[numpy.tan(alphaTE * scipy.pi/180)]])
+        for m in range(4):
+            c_mat[0,m] = xc**(m+1)
+            c_mat[1,m] = xc**(m) * (m+1)
+            c_mat[2,m] = 1.0
+            c_mat[3,m] = m + 1.0
+        camber_coeficient =numpy.linalg.solve(c_mat,cu_vector)
+        addcamber = camber_coeficient[0] * ga.x + camber_coeficient[1] * ga.x**2 + camber_coeficient[2] * ga.x**3 + camber_coeficient[3] * ga.x ** 4
+        self.export_x = ga.x
+        self.export_y =(ga.y[0,:] * self.exprt_coefficient[0] + ga.y[1,:] * self.exprt_coefficient[1] + ga.y[2,:] * self.exprt_coefficient[2] + ga.y[3,:] * self.exprt_coefficient[3] + addcamber) * self.exprt_coefficient[7]
+
+        fid = open("export.foil",'w')
+        fid.write("xfoil\n")
+        for i in range(numpy.shape(self.export_x)[0]):
+            fid.write(" {x_ele}  {y_ele} \n".format(x_ele = self.export_x[i], y_ele = self.export_y[i]))
+        fid.close()
 
     def filt_foil(self,filt_iter):
         pass
@@ -934,8 +975,18 @@ class Export_Filt_Foil():
     def getfoilname(self):
         pass
 
-    def export_foil(self):
+    def do_export(self):
         pass
+
+    def dialog(self,cfoil_widget):
+        ret = QtGui.QMessageBox.question(None,"EXPORT Foil", "世代:{generation}を出力します\n速度分布の平滑化行いますか？".format(generation = int(cfoil_widget.combobox.currentText())),
+                        QtGui.QMessageBox.Yes | QtGui.QMessageBox.No | QtGui.QMessageBox.Cancel,QtGui.QMessageBox.Yes)
+        if ret == QtGui.QMessageBox.Yes:
+            print("OK")
+
+
+
+
 
 class Foils_Default_Change(QtGui.QWidget):
     def __init__(self,parent = None):
@@ -1017,7 +1068,10 @@ class Foils_Default_Change(QtGui.QWidget):
             self.wirte_init_file()
 
 
-        self.dialog = QtGui.QWidget(parent = None)
+        self.dialog = QtGui.QDialog(parent = None)
+        self.dialog.setWindowTitle("Default Setteing")
+        self.dialog.setModal(1)
+        self.dialog.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         self.dialog.setFixedSize(700,400)
 
         self.defaultdirectory = QtGui.QGroupBox("翼型保存フォルダ",parent = self.dialog)
@@ -1156,7 +1210,7 @@ def main():
                 ga.generation += 1
 
                 if ga.generation == 1:
-                    titleexeprogress.generation.setText("  Generation : None / ")
+                    titleexeprogress.generation.setText("  世代 : 0 / ")
                     global n_sample
                     n_sample = int(titleexeprogress.inputindno.text())
                     titleexeprogress.inputindno.setDisabled(1)
@@ -1173,7 +1227,7 @@ def main():
                         cfoil_widget.replot(ga,ga.maxFconNo)
                         dataplotwidget.update_dataplot(ga,ga.generation)
                 else:
-                    titleexeprogress.generation.setText("Generation : {fgene} / ".format(fgene = ga.generation-1))
+                    titleexeprogress.generation.setText("世代 : {fgene} / ".format(fgene = ga.generation-1))
                     ga.gene2coeficient()
                     ga.coeficient2foil()
                     ga.exeXFoil(qApp,titleexeprogress,input_widget)
@@ -1182,10 +1236,12 @@ def main():
                         cfoil_widget.replot(ga,ga.maxFconNo)
                         dataplotwidget.update_dataplot(ga,ga.generation)
                 if ga.run ==0 or ga.run ==2 :
-                    cfoil_widget.combobox.addItem(str(ga.generation))
+                    cfoil_widget.combobox.clear()
+                    for combo_n in range(ga.generation,0,-1):
+                        cfoil_widget.combobox.addItem(str(combo_n))
                 max_generation = int(titleexeprogress.inputgeneration.text())
                 if ga.generation == max_generation:
-                    titleexeprogress.generation.setText("Generation : {fgene} / ".format(fgene = ga.generation))
+                    titleexeprogress.generation.setText("世代 : {fgene} / ".format(fgene = ga.generation))
                     titleexeprogress.stopbutton.setText("RESUME")
                     ga.run = 1
                     ga.generation += 1
@@ -1263,21 +1319,25 @@ def main():
 
         titleexeprogress.inputindno.setDisabled(0)
         titleexeprogress.stopbutton.setDisabled(1)
-        cfoil_widget.rollbackbutton.setEnabled(True)
-        cfoil_widget.outputbutton.setEnabled(True)
-        cfoil_widget.combobox.setEnabled(True)
+        cfoil_widget.rollbackbutton.setEnabled(False)
+        cfoil_widget.outputbutton.setEnabled(False)
+        cfoil_widget.combobox.setEnabled(False)
 
         titleexeprogress.progressbar.reset()
         cfoil_widget.CLlabel.setText("揚力係数CL : {CL}    抗力係数Cd(*10000) : {Cd}    揚抗比CL/Cd : {CLCd}    モーメント係数Cm : {Cm}     翼厚 : {thn:4}".format(CL = 0, Cd = "NaN", CLCd = "NaN",Cm = "Nan", thn = "NaN"))
 
     def rollback():
-        rollbacgeneration = int(cfoil_widget.combobox.currentText())
-        ga.save_top = copy.deepcopy(ga.history_top[rollbacgeneration-1])
-        ga.save_topValue = copy.deepcopy(ga.history_topValue[rollbacgeneration-1])
-        ga.gene2[n_sample-1] = copy.deepcopy(ga.save_top)
+        ret = QtGui.QMessageBox.question(None,"Elite REVERT", "世代:{generation}を最も優れた翼型として登録します\n(評価関数が最大値をとった翼型は登録され、毎世代投入されます)\nよろしいですか？".format(generation = int(cfoil_widget.combobox.currentText())),
+                        QtGui.QMessageBox.Yes | QtGui.QMessageBox.No,QtGui.QMessageBox.Yes)
+        if ret == QtGui.QMessageBox.Yes:
+            rollbacgeneration = int(cfoil_widget.combobox.currentText())
+            ga.save_top = copy.deepcopy(ga.history_top[rollbacgeneration-1])
+            ga.save_topValue = copy.deepcopy(ga.history_topValue[rollbacgeneration-1])
+            ga.gene2[n_sample-1] = copy.deepcopy(ga.save_top)
 
     def expot_foil():
-        pass
+        export.gene2foil(ga,int(cfoil_widget.combobox.currentText()))
+        export.dialog(cfoil_widget)
 
     def save_file():
         pass
@@ -1303,6 +1363,9 @@ def main():
     default.read_init_file()
     default.change_dialog()
 
+    #エクスポート用インスタンス
+    export = Export_Filt_Foil()
+
     #メインウィンドウにそのまま貼り付けるウィジット
     main_panel = QtGui.QWidget()
 
@@ -1319,6 +1382,10 @@ def main():
     #データ表示ウィジットの中身
     input_widget = Inputtarget_Setbutton_Widget(parent = input_data_panel)
     cfoil_widget = CalclatedFoilWidget(default, ga, 0, parent = input_data_panel)
+    #エキスポートボタン等を使えなくしておく
+    cfoil_widget.rollbackbutton.setEnabled(False)
+    cfoil_widget.outputbutton.setEnabled(False)
+    cfoil_widget.combobox.setEnabled(False)
     dataplotwidget = DataPlotWidget(parent = input_data_panel)
     titleexeprogress = TitleExeStopProgressWidget(parent = input_data_panel)
     titleexeprogress.stopbutton.setDisabled(1)
@@ -1359,7 +1426,9 @@ def main():
 
     optionmenu = menubar.addMenu("Option")
     defaultfoils = optionmenu.addAction("&Default Directory && Foils")
+    main_window.connect(defaultfoils,QtCore.SIGNAL('triggered()'),default.dialog.activateWindow)
     main_window.connect(defaultfoils,QtCore.SIGNAL('triggered()'),default.dialog.show)
+
 
     aboutmenu = menubar.addMenu("About")
     about_XGAG = aboutmenu.addAction("&About XGAG")
