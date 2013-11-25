@@ -10,13 +10,11 @@
 #-------------------------------------------------------------------------------
 
 #-*- coding: utf-8 -*-
-import scipy, numpy, math
+import numpy, csv
 
 
 import sys, os, random, copy
 from PyQt4 import QtGui, QtCore
-
-import matplotlib
 
 import matplotlib.backends.backend_qt4agg
 import matplotlib.backends.backend_agg
@@ -87,6 +85,12 @@ class FoilPlot(Matplot):
         self.draw()
 
     def update_figure2(self):
+        if not self.filename:
+            foil = numpy.array([[0.0,0.0],[0.0,0.0]])
+        else:
+            foil = numpy.loadtxt(self.filename,skiprows=1)
+        self.Fx = foil[:,0]
+        self.Fy = foil[:,1]
         self.axes.plot(self.Fx, self.Fy)
         self.draw()
 
@@ -564,6 +568,10 @@ class GeneteticAlgolithm():
             self.save_topValue = [0]
             self.save_top = [0]
             self.n = 0
+            self.pfCd = 0.0
+            self.pfCm = 0.0
+            self.pfCL = 0.0
+            self.pfthn =0.0
 
     def getFoilChord(self,other):
         self.no1x = other.no1.showfoil.Fx
@@ -676,7 +684,7 @@ class GeneteticAlgolithm():
             alphaTE = self.coefficient[n][6]
 
             c_mat = numpy.arange(0, 4 * 4).reshape(4, 4) + numpy.identity(4)
-            cu_vector = numpy.array([[zc],[0.0],[0.0],[numpy.tan(alphaTE * scipy.pi/180)]])
+            cu_vector = numpy.array([[zc],[0.0],[0.0],[numpy.tan(alphaTE * numpy.pi/180)]])
             for m in range(4):
                 c_mat[0,m] = xc**(m+1)
                 c_mat[1,m] = xc**(m) * (m+1)
@@ -743,7 +751,7 @@ class GeneteticAlgolithm():
                         anlydata = analydata[-1,:]
                     os.remove(fname)
 
-                    if math.isnan(float(sum(anlydata))):
+                    if numpy.isnan(float(sum(anlydata))):
                         raise
 
                     self.CL_GA[n] = anlydata[1]
@@ -919,13 +927,11 @@ class GeneteticAlgolithm():
             if mutation <= 0.07:
                 i = random.randint(0,7)
 
-                rand_i = random.randint(2,9)
-                if self.gene2[n][i][rand_i] == "0":
-                    temp = self.gene2[n][i][0:rand_i]
-                    self.gene2[n][i] = (temp + "1"*(11-i)).zfill(12)
-                else:
-                    temp =self.gene2[n][i][0:rand_i]
-                    self.gene2[n][i] = (temp + "0"*(11-i)).zfill(12)
+                rand_i = random.randint(0,10)
+                temp = self.gene2[n][i][0:rand_i]
+                while len(temp) < 12:
+                    temp = temp + str(random.randint(0,1))
+
 
         self.gene2[n_sample-1] = copy.deepcopy(self.save_top)
 
@@ -957,7 +963,7 @@ class Export_Filt_Foil():
         alphaTE = self.exprt_coefficient[6]
 
         c_mat = numpy.arange(0, 4 * 4).reshape(4, 4) + numpy.identity(4)
-        cu_vector = numpy.array([[zc],[0.0],[0.0],[numpy.tan(alphaTE * scipy.pi/180)]])
+        cu_vector = numpy.array([[zc],[0.0],[0.0],[numpy.tan(alphaTE * numpy.pi/180)]])
         for m in range(4):
             c_mat[0,m] = xc**(m+1)
             c_mat[1,m] = xc**(m) * (m+1)
@@ -1247,22 +1253,25 @@ def main():
 
 
     def startGA():
-        ga.generation = 0
-        ga.run = 0
-        ga.save_top = [0]
-        ga.save_topValue = [0]
-        titleexeprogress.exebutton.setText("RESTART zero")
-        font = QtGui.QFont()
-        font.setPointSize(12)
-        titleexeprogress.exebutton.setFont(font)
+        ret = QtGui.QMessageBox.question(None,"EXPORT Foil", "世代:0から最適化計算を実行します\nよろしいですか？",
+                        QtGui.QMessageBox.Yes | QtGui.QMessageBox.No ,QtGui.QMessageBox.Yes)
+        if ret == QtGui.QMessageBox.Yes:
+            ga.generation = 0
+            ga.run = 0
+            ga.save_top = [0]
+            ga.save_topValue = [0]
+            titleexeprogress.exebutton.setText("RESTART zero")
+            font = QtGui.QFont()
+            font.setPointSize(12)
+            titleexeprogress.exebutton.setFont(font)
 
-        titleexeprogress.stopbutton.setText("STOP")
-        titleexeprogress.stopbutton.setFont(font)
-        cfoil_widget.rollbackbutton.setEnabled(False)
-        cfoil_widget.outputbutton.setEnabled(False)
-        cfoil_widget.combobox.setEnabled(False)
-        cfoil_widget.combobox.clear()
-        exeGA()
+            titleexeprogress.stopbutton.setText("STOP")
+            titleexeprogress.stopbutton.setFont(font)
+            cfoil_widget.rollbackbutton.setEnabled(False)
+            cfoil_widget.outputbutton.setEnabled(False)
+            cfoil_widget.combobox.setEnabled(False)
+            cfoil_widget.combobox.clear()
+            exeGA()
 
     def stopGA():
         if ga.run == 0 or ga.run == 2 :
@@ -1332,13 +1341,267 @@ def main():
         export.dialog(cfoil_widget,input_widget,default)
 
     def save_file():
-        pass
+        fid = open("save_test.gag","w")
+        writecsv = csv.writer(fid,lineterminator = "\n")
+        writecsv.writerows(ga.gene2)
+        fid.close()
+
+        fid = open("save_test.gag","a")
+        writecsv = csv.writer(fid,lineterminator = "\n")
+        writecsv.writerow(["---"])
+        writecsv.writerow(ga.save_top)
+        writecsv.writerow([str(ga.save_topValue)])
+        writecsv.writerow(["---"])
+
+        for history_Fcon in numpy.ndarray.tolist(ga.history_Fcon):
+            writecsv.writerow([str(history_Fcon)])
+        writecsv.writerow(["---"])
+
+        for history_CL in numpy.ndarray.tolist(ga.history_CL):
+            writecsv.writerow([str(history_CL)])
+        writecsv.writerow(["---"])
+
+        for history_Cd in numpy.ndarray.tolist(ga.history_Cd):
+            writecsv.writerow([str(history_Cd)])
+        writecsv.writerow(["---"])
+
+        for history_Cm in numpy.ndarray.tolist(ga.history_Cm):
+            writecsv.writerow([str(history_Cm)])
+        writecsv.writerow(["---"])
+
+        for history_CLCD in numpy.ndarray.tolist(ga.history_CLCD):
+            writecsv.writerow([str(history_CLCD)])
+        writecsv.writerow(["---"])
+
+        for history_thn in numpy.ndarray.tolist(ga.history_thn):
+            writecsv.writerow([str(history_thn)])
+        writecsv.writerow(["---"])
+
+        for history_topValue in ga.history_topValue:
+            writecsv.writerow([str(history_topValue)])
+        writecsv.writerow(["---"])
+
+        for history_top in ga.history_top:
+            writecsv.writerow(history_top)
+        writecsv.writerow(["---"])
+
+        writecsv.writerow([basefoilpanel.no1.showfoil.filename])
+        writecsv.writerow([basefoilpanel.no2.showfoil.filename])
+        writecsv.writerow([basefoilpanel.no3.showfoil.filename])
+        writecsv.writerow([basefoilpanel.no4.showfoil.filename])
+
+        writecsv.writerow(["---"])
+
+        #generation
+        writecsv.writerow([str(ga.generation)])
+        writecsv.writerow([str(n_sample)])
+
+        #評価関数
+        writecsv.writerow([str(ga.pfCd)])
+        writecsv.writerow([str(ga.pfCm)])
+        writecsv.writerow([str(ga.pfCL)])
+        writecsv.writerow([str(ga.pfthn)])
+
+        #評価関数
+        writecsv.writerow([str(float(input_widget.inputwidget.inputalpha.text()))])
+        writecsv.writerow([str(float(input_widget.inputwidget.inputRe.text()))])
+        writecsv.writerow([str(float(input_widget.inputwidget.inputthn.text()))])
+        writecsv.writerow([str(float(input_widget.inputwidget.inputthnpos.text()))])
+        writecsv.writerow([str(float(input_widget.inputwidget.inputminCd.text()))])
+        writecsv.writerow(["---"])
+
+        #sortedlist
+
+        numpy.savetxt("numpyout.buff",ga.sortedlist,delimiter = ",",fmt="%.9f")
+        f = open("numpyout.buff","r")
+        csv_buff = csv.reader(f,delimiter = ',')
+        csv_writebuff = []
+        for data in csv_buff:
+            csv_writebuff.append(data)
+        f.close()
+        os.remove("numpyout.buff")
+        print(csv_writebuff)
+
+        for iter_sort in csv_writebuff:
+            writecsv.writerow(iter_sort)
+        writecsv.writerow(["---"])
+
+        fid.close()
+
+        print(ga.history_Fcon)
+
 
     def open_file():
-        pass
+        #CSVリストの作成
+        fid = open("save_test.gag")
+        csv_openfile = csv.reader(fid,delimiter = ',')
+        read_n = 0
+        csv_allfile = []
+        for data in csv_openfile:
+            csv_allfile.append(data)
+        fid.close()
+
+        #リストよりgene抽出
+        gene = []
+        read_i = 0
+        while 1:
+            if csv_allfile[read_i] == ['---']:
+                break
+            gene.append(csv_allfile[read_i])
+            read_i += 1
+        ga.gene2 = gene
+        print(ga.gene2)
+        n_sample = numpy.shape(ga.gene2)[0]
+        print(n_sample)
+
+        print(csv_allfile)
+
+        #リストよりsave_topおよびsave_topValue抽出
+        read_i += 1
+        ga.save_top =csv_allfile[read_i]
+        read_i += 1
+        ga.save_topValue = float(csv_allfile[read_i][0])
+        read_i += 1
+
+
+        #history_Fcon
+        read_i += 1
+        history_Fcon_list = []
+        while 1:
+            if csv_allfile[read_i] == ['---']:
+                break
+            history_Fcon_list.append(float(csv_allfile[read_i][0]))
+            read_i += 1
+
+        ga.history_Fcon = numpy.array(history_Fcon_list)
+        read_i += 1
+
+        #history_CL
+        history_CL_list = []
+        while 1:
+            if csv_allfile[read_i] == ['---']:
+                break
+            history_CL_list.append(float(csv_allfile[read_i][0]))
+            read_i += 1
+
+        ga.history_CL = numpy.array(history_CL_list)
+        read_i += 1
+
+        print(ga.history_CL)
+
+
+        #history_Cd
+
+        history_Cd_list = []
+        while 1:
+            if csv_allfile[read_i] == ['---']:
+                break
+            history_Cd_list.append(float(csv_allfile[read_i][0]))
+            read_i += 1
+
+        ga.history_Cd = numpy.array(history_Cd_list)
+        read_i += 1
+
+        print(ga.history_Cd)
+
+        #history_CLCD
+        history_Cm_list = []
+        while 1:
+            if csv_allfile[read_i] == ['---']:
+                break
+            history_Cm_list.append(float(csv_allfile[read_i][0]))
+            read_i += 1
+
+        ga.history_Cm = numpy.array(history_Cm_list)
+        read_i += 1
+
+        print(ga.history_Cm)
+
+        #history_CLCD
+        history_CLCD_list = []
+        while 1:
+            if csv_allfile[read_i] == ['---']:
+                break
+            history_CLCD_list.append(float(csv_allfile[read_i][0]))
+            read_i += 1
+
+        ga.history_CLCD = numpy.array(history_CLCD_list)
+        read_i += 1
+
+        print(ga.history_CLCD)
+
+        #history_thn
+        history_thn_list = []
+        while 1:
+            if csv_allfile[read_i] == ['---']:
+                break
+            history_thn_list.append(float(csv_allfile[read_i][0]))
+            read_i += 1
+
+        ga.history_thn = numpy.array(history_thn_list)
+        read_i += 1
+
+        print(ga.history_thn)
+
+        #history_haistory_topval
+        history_topValue_list = []
+        while 1:
+            if csv_allfile[read_i] == ['---']:
+                break
+            history_topValue_list.append(float(csv_allfile[read_i][0]))
+            read_i += 1
+
+        ga.history_topValue = history_topValue_list
+        read_i += 1
+
+        print(ga.history_topValue)
+
+
+        history_top = []
+        while 1:
+            if csv_allfile[read_i] == ['---']:
+                break
+            history_top.append(csv_allfile[read_i])
+            read_i += 1
+
+        ga.history_top = history_top
+        read_i += 1
+
+        print(ga.history_top)
+        #リストよりbasefail名抽出
+
+        basefoilpanel.no1.showfoil.filename = csv_allfile[read_i][0]
+        basefoilpanel.no1.showfoil.update_figure2()
+        read_i += 1
+
+        basefoilpanel.no2.showfoil.filename = csv_allfile[read_i][0]
+        basefoilpanel.no2.showfoil.update_figure2()
+        read_i += 1
+
+        basefoilpanel.no3.showfoil.filename = csv_allfile[read_i][0]
+        basefoilpanel.no3.showfoil.update_figure2()
+        read_i += 1
+
+        basefoilpanel.no4.showfoil.filename = csv_allfile[read_i][0]
+        basefoilpanel.no4.showfoil.update_figure2()
+        read_i += 1
+
+        #リストより各設計パラメタ、評価関数 generation 抽出
+        read_i += 1
+        ga.generation = int(csv_allfile[read_i][0])
+        titleexeprogress.generation.setText("世代 : {fgene} / ".format(fgene = ga.generation-1))
+        read_i += 1
+        global n_sample
+        n_sample = int(csv_allfile[read_i][0])
+
+        #各設計パラメタおよびsortedlistの抽出
+
+        #dataplot を再描画する
+        dataplotwidget.update_dataplot(ga,ga.generation)
 
     def about_XGAG():
         pass
+
 
     def default_setting():
         pass
@@ -1415,6 +1678,8 @@ def main():
     file_save = filemenu.addAction("&Save")
     file_save.setShortcut('Ctrl+S')
     main_window.connect(file_new,QtCore.SIGNAL('triggered()'),newproject)
+    main_window.connect(file_save,QtCore.SIGNAL('triggered()'),save_file)
+    main_window.connect(file_open,QtCore.SIGNAL('triggered()'),open_file)
 
     optionmenu = menubar.addMenu("Option")
     defaultfoils = optionmenu.addAction("&Default Directory && Foils")
