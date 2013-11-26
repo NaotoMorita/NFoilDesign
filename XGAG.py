@@ -23,9 +23,6 @@ import matplotlib.backends.backend_agg
 import subprocess
 import shutil
 
-progname = os.path.basename(sys.argv[0])
-progversion = "0.1"
-
 
 class Matplot(matplotlib.backends.backend_qt4agg.FigureCanvasQTAgg):
     def __init__(self, parent=None, width=6, height=3, dpi=50, Fx = numpy.array([[0],[0]]), Fy = numpy.array([[0],[0]])):
@@ -1017,12 +1014,12 @@ class Export_Filt_Foil():
         ret = QtGui.QMessageBox.question(None,"EXPORT Foil", "世代:{generation}を出力します\n速度分布の平滑化行いますか？".format(generation = int(cfoil_widget.combobox.currentText())),
                         QtGui.QMessageBox.Yes | QtGui.QMessageBox.No | QtGui.QMessageBox.Cancel,QtGui.QMessageBox.Yes)
         if ret == QtGui.QMessageBox.Yes:
-            self.export_foilname = QtGui.QFileDialog.getSaveFileName(None, caption = "EXPORT Foil(Filet)",directory = os.path.join(default.foildirectory,"XGAGf{generation}".format(generation = int(cfoil_widget.combobox.currentText()))), filter = "Foil Chord File(*.dat)") #option = "XGAGf{generation}".format(generation = int(cfoil_widget.combobox.currentText()) )
+            self.export_foilname = QtGui.QFileDialog.getSaveFileName(None, caption = "EXPORT Foil(Filet)",directory = os.path.join(default.foildirectory,"XGAGf{generation}".format(generation = int(cfoil_widget.combobox.currentText()))), filter = "Foil Chord File(*.dat)")
             alpha = float(input_widget.inputwidget.inputalpha.text())
             self.filt_foil(alpha)
             self.do_export()
         elif ret == QtGui.QMessageBox.No:
-            self.export_foilname = QtGui.QFileDialog.getSaveFileName(None, caption = "EXPORT Foil(Filet)",directory = os.path.join(default.foildirectory,"XGAGf{generation}".format(generation = int(cfoil_widget.combobox.currentText()))), filter = "Foil Chord File(*.dat)") #option = "XGAGf{generation}".format(generation = int(cfoil_widget.combobox.currentText()) )
+            self.export_foilname = QtGui.QFileDialog.getSaveFileName(None, caption = "EXPORT Foil(Filet)",directory = os.path.join(default.foildirectory,"XGAGf{generation}".format(generation = int(cfoil_widget.combobox.currentText()))), filter = "Foil Chord File(*.dat)")
             self.do_export()
 
 
@@ -1354,7 +1351,7 @@ def main():
         export.dialog(cfoil_widget,input_widget,default)
 
     def save_file():
-        fid = open("save_test.gag","w")
+        fid = open(projectname,"w")
         writecsv = csv.writer(fid,lineterminator = "\n")
         writecsv.writerows(ga.gene2)
 
@@ -1472,7 +1469,7 @@ def main():
 
     def open_file():
         #CSVリストの作成
-        fid = open("save_test.gag")
+        fid = open(projectname)
         csv_openfile = csv.reader(fid,delimiter = ',')
         read_n = 0
         csv_allfile = []
@@ -1698,15 +1695,39 @@ def main():
 
 
         #dataplot を再描画する
+        ga.CL_forplot = float(input_widget.inputwidget.inputCL.text())
+        ga.thn_forplot = float(input_widget.inputwidget.inputthn.text())/100
+
         dataplotwidget.update_dataplot(ga,ga.generation)
         cfoil_widget.replot2(ga)
+
+        #その他諸々の設定
+        ga.run = 1
+        titleexeprogress.stopbutton.setText("RESUME")
+        titleexeprogress.stopbutton.setEnabled(True)
+        titleexeprogress.progressbar.reset()
+        cfoil_widget.rollbackbutton.setEnabled(True)
+        cfoil_widget.outputbutton.setEnabled(True)
+        cfoil_widget.combobox.setEnabled(True)
+
+
 
     def about_XGAG():
         pass
 
+    def save_as():
+        projectname = QtGui.QFileDialog.getSaveFileName(None, caption = "Project name",directory = os.path.join(default.foildirectory,filter = "XGAG File(*.gag)")
+        save_file()
 
-    def default_setting():
-        pass
+
+    def save():
+        if "projectname" not in locals():
+            save_as()
+        elif ga.generation == 0:
+            QtGui.QMessageBox.warning("進捗がありません")
+        else:
+            save_file()
+
 
     qApp = QtGui.QApplication(sys.argv)
 
