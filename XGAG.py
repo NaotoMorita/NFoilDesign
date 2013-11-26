@@ -282,7 +282,7 @@ class CalclatedFoilWidget(QtGui.QWidget):
     def replot2(self,ga):
         self.cfw.update_figure3()
         shownom = numpy.shape(ga.history_CL)[0]-1
-        self.CLlabel.setText("CL : {CL:5}    Cd(count) : {Cd:4}    CL/Cd : {CLCd:4}    Cm : {Cm}     翼厚 : {thn:4}".format(CL = round(ga.hisrtory_CL[shownom], 4), Cd = round(ga.hisrtory_Cd[shownom] * 10000,1), CLCd = round(ga.CL/ga.Cd,1),Cm = round(ga.hisrtory_Cm[shownom],4), thn = round(ga.hisrtory_thn[shownom] * 100,4)))
+        self.CLlabel.setText("CL : {CL:5}    Cd(count) : {Cd:4}    CL/Cd : {CLCd:4}    Cm : {Cm}     翼厚 : {thn:4}".format(CL = round(ga.history_CL[shownom], 4), Cd = round(ga.history_Cd[shownom] * 10000,1), CLCd = round(ga.history_CL[shownom]/ga.history_Cd[shownom],1),Cm = round(ga.history_Cm[shownom],4), thn = round(ga.history_thn[shownom] * 100,4)))
 
 
 class Inputtarget_Setbutton_Widget(QtGui.QWidget):
@@ -1357,9 +1357,7 @@ def main():
         fid = open("save_test.gag","w")
         writecsv = csv.writer(fid,lineterminator = "\n")
         writecsv.writerows(ga.gene2)
-        fid.close()
 
-        fid = open("save_test.gag","a")
         writecsv = csv.writer(fid,lineterminator = "\n")
         writecsv.writerow(["---"])
         writecsv.writerow(ga.save_top)
@@ -1440,8 +1438,8 @@ def main():
         writecsv.writerow(["---"])
 
         #翼型
-        foiloutbuff = numpy.hstack([cfoil_widget.cfw.Fx,cfoil_widget.cfw.Fy])
-        numpy.savetxt("numpyout.buff",foiloubuff,delimiter = ",",fmt="%.9f")
+        foiloutbuff = numpy.vstack([cfoil_widget.cfw.Fx,cfoil_widget.cfw.Fy])
+        numpy.savetxt("numpyout.buff",foiloutbuff,delimiter = ",",fmt="%.9f")
         f = open("numpyout.buff","r")
         csv_buff = csv.reader(f,delimiter = ',')
         csv_writebuff = []
@@ -1454,8 +1452,8 @@ def main():
         writecsv.writerow(["---"])
 
         #history
-        historyoutbuff = numpy.hstack([ga.history_Fcon,ga.history_CL,ga.history_Cd,ga.history_Cm,ga.history_CLCD,ga.history_thn,ga.history_generation])
-        numpy.savetxt("numpyout.buff",historyoubuff,delimiter = ",",fmt="%.9f")
+        historyoutbuff = numpy.vstack([ga.history_Fcon,ga.history_CL,ga.history_Cd,ga.history_Cm,ga.history_CLCD,ga.history_thn,ga.history_generation])
+        numpy.savetxt("numpyout.buff",historyoutbuff,delimiter = ",",fmt="%.9f")
         f = open("numpyout.buff","r")
         csv_buff = csv.reader(f,delimiter = ',')
         csv_writebuff = []
@@ -1671,6 +1669,7 @@ def main():
         ga.sortedlist = numpy.loadtxt("inputsorted.buff",delimiter = ",")
 
         read_i += n_sample+1
+        print(n_sample)
         input_array_buff = csv_allfile[read_i:read_i + 2]
         fid = open("inputbuff.buff","w")
         writecsv = csv.writer(fid,lineterminator = "\n")
@@ -1681,12 +1680,14 @@ def main():
         cfoil_widget.cfw.Fy = foilbuff[1,:]
 
         read_i += 3
+        print(read_i)
+        print(numpy.shape(csv_allfile)[0])
         input_array_buff = csv_allfile[read_i:numpy.shape(csv_allfile)[0]-1]
-        fid = open("inputbuff.buff","w")
+        fid = open("inputbuff2.buff","w")
         writecsv = csv.writer(fid,lineterminator = "\n")
         writecsv.writerows(input_array_buff)
         fid.close()
-        historybuff = numpy.loadtxt("inputbuff.buff",delimiter = ",")
+        historybuff = numpy.loadtxt("inputbuff2.buff",delimiter = ",")
         ga.history_Fcon = historybuff[0,:]
         ga.history_CL   = historybuff[1,:]
         ga.history_Cd   = historybuff[2,:]
