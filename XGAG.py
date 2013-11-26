@@ -1011,15 +1011,20 @@ class Export_Filt_Foil():
         fid.close()
 
     def dialog(self,cfoil_widget,input_widget,default):
-        ret = QtGui.QMessageBox.question(None,"EXPORT Foil", "世代:{generation}を出力します\n速度分布の平滑化行いますか？".format(generation = int(cfoil_widget.combobox.currentText())),
+        ret = QtGui.QMessageBox.question(None,"EXPORT Foil",
+                        "世代:{generation}を出力します\n速度分布の平滑化行いますか？".format(generation = int(cfoil_widget.combobox.currentText())),
                         QtGui.QMessageBox.Yes | QtGui.QMessageBox.No | QtGui.QMessageBox.Cancel,QtGui.QMessageBox.Yes)
         if ret == QtGui.QMessageBox.Yes:
-            self.export_foilname = QtGui.QFileDialog.getSaveFileName(None, caption = "EXPORT Foil(Filet)",directory = os.path.join(default.foildirectory,"XGAGf{generation}".format(generation = int(cfoil_widget.combobox.currentText()))), filter = "Foil Chord File(*.dat)")
+            self.export_foilname = QtGui.QFileDialog.getSaveFileName(None, caption = "EXPORT Foil(Filet)",
+                                    directory = os.path.join(default.foildirectory,"XGAGf{generation}".format(generation =
+                                    int(cfoil_widget.combobox.currentText()))), filter = "Foil Chord File(*.dat)")
             alpha = float(input_widget.inputwidget.inputalpha.text())
             self.filt_foil(alpha)
             self.do_export()
         elif ret == QtGui.QMessageBox.No:
-            self.export_foilname = QtGui.QFileDialog.getSaveFileName(None, caption = "EXPORT Foil(Filet)",directory = os.path.join(default.foildirectory,"XGAGf{generation}".format(generation = int(cfoil_widget.combobox.currentText()))), filter = "Foil Chord File(*.dat)")
+            self.export_foilname = QtGui.QFileDialog.getSaveFileName(None, caption = "EXPORT Foil(Filet)",
+                                    directory = os.path.join(default.foildirectory,"XGAGf{generation}".format(generation =
+                                    int(cfoil_widget.combobox.currentText()))), filter = "Foil Chord File(*.dat)")
             self.do_export()
 
 
@@ -1469,6 +1474,7 @@ def main():
 
     def open_file():
         #CSVリストの作成
+        projectname= QtGui.QFileDialog.getOpenFileName(parent = None,caption = "OPEN Project" ,directory=os.path.join(default.foildirectory), filter="XGAG File(*.gag)")
         fid = open(projectname)
         csv_openfile = csv.reader(fid,delimiter = ',')
         read_n = 0
@@ -1716,7 +1722,7 @@ def main():
         pass
 
     def save_as():
-        projectname = QtGui.QFileDialog.getSaveFileName(None, caption = "Project name",directory = os.path.join(default.foildirectory,filter = "XGAG File(*.gag)")
+        projectname = QtGui.QFileDialog.getSaveFileName(None, caption = "Project name",directory = os.path.join(default.foildirectory),filter = "XGAG File(*.gag)")
         save_file()
 
 
@@ -1800,8 +1806,10 @@ def main():
     file_open.setShortcut('Ctrl+O')
     file_save = filemenu.addAction("&Save")
     file_save.setShortcut('Ctrl+S')
+    file_saveas = filemenu.addAction("&Save as")
     main_window.connect(file_new,QtCore.SIGNAL('triggered()'),newproject)
-    main_window.connect(file_save,QtCore.SIGNAL('triggered()'),save_file)
+    main_window.connect(file_save,QtCore.SIGNAL('triggered()'),save)
+    main_window.connect(file_save,QtCore.SIGNAL('triggered()'),save_as)
     main_window.connect(file_open,QtCore.SIGNAL('triggered()'),open_file)
 
     optionmenu = menubar.addMenu("Option")
