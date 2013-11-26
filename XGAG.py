@@ -357,22 +357,22 @@ class Inputtarget_Setbutton_Widget(QtGui.QWidget):
         self.inputevafunc.text1.setText("評価関数 : (")
         self.inputevafunc.P1 = QtGui.QLineEdit(parent = self.inputevafunc)
         self.inputevafunc.P1.setText("1")
-        self.inputevafunc.P1.setFixedWidth(20)
+        self.inputevafunc.P1.setFixedWidth(30)
         self.inputevafunc.text2 = QtGui.QLabel(parent = self.inputevafunc)
         self.inputevafunc.text2.setText("* 1/Cd  -")
         self.inputevafunc.P2 = QtGui.QLineEdit(parent = self.inputevafunc)
         self.inputevafunc.P2.setText("0")
-        self.inputevafunc.P2.setFixedWidth(20)
+        self.inputevafunc.P2.setFixedWidth(30)
         self.inputevafunc.text3 = QtGui.QLabel(parent = self.inputevafunc)
         self.inputevafunc.text3.setText("* 1/Cm ) * Exp{ -")
         self.inputevafunc.P3 = QtGui.QLineEdit(parent = self.inputevafunc)
         self.inputevafunc.P3.setText("5")
-        self.inputevafunc.P3.setFixedWidth(20)
+        self.inputevafunc.P3.setFixedWidth(30)
         self.inputevafunc.text4 = QtGui.QLabel(parent = self.inputevafunc)
         self.inputevafunc.text4.setText("* |CL - CL(target)|  -")
         self.inputevafunc.P4 = QtGui.QLineEdit(parent = self.inputevafunc)
         self.inputevafunc.P4.setText("10")
-        self.inputevafunc.P4.setFixedWidth(20)
+        self.inputevafunc.P4.setFixedWidth(30)
         self.inputevafunc.text5 = QtGui.QLabel(parent = self.inputevafunc)
         self.inputevafunc.text5.setText(" * |thickness - thickness(target)|}")
 
@@ -570,10 +570,10 @@ class GeneteticAlgolithm():
             self.thn = 0
             self.run = 0
             self.generation = 0
-            self.history_topValue = [0]
-            self.history_top = [0]
-            self.save_topValue = [0]
-            self.save_top = [0]
+            self.history_topValue = []
+            self.history_top = []
+            self.save_topValue = []
+            self.save_top = []
             self.n = 0
             self.pfCd = 0.0
             self.pfCm = 0.0
@@ -932,8 +932,6 @@ class GeneteticAlgolithm():
                 self.gene2[2*n+1][i] = str(cross2b+cross1a).zfill(12)
 
         self.hash_GA = [0] * n_sample
-        for n in range(n_sample):
-            self.hash_GA[n] = str(hash(str(self.gene2[n])))
 
         #-----突然変異操作
         for n in range(n_sample):
@@ -1648,6 +1646,10 @@ def main():
             read_i += 1
             input_widget.inputevafunc.P4.setText(csv_allfile[read_i][0])
 
+            ga.pfCd = float(input_widget.inputevafunc.P1.text())
+            ga.pfCm = float(input_widget.inputevafunc.P2.text())
+            ga.pfCL =float(input_widget.inputevafunc.P3.text())
+            ga.pfthn =float(input_widget.inputevafunc.P4.text())
 
             read_i += 1
             input_widget.inputwidget.inputalpha.setText(csv_allfile[read_i][0])
@@ -1664,6 +1666,8 @@ def main():
             read_i += 1
             print(csv_allfile[read_i][0])
             input_widget.inputwidget.inputminCd.setText(csv_allfile[read_i][0])
+
+
 
             read_i += 2
             input_array_buff = csv_allfile[read_i:read_i + n_sample]
