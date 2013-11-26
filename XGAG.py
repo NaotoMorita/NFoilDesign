@@ -279,6 +279,12 @@ class CalclatedFoilWidget(QtGui.QWidget):
         self.cfw.update_figure3()
         self.CLlabel.setText("CL : {CL:5}    Cd(count) : {Cd:4}    CL/Cd : {CLCd:4}    Cm : {Cm}     翼厚 : {thn:4}".format(CL = round(ga.CL, 4), Cd = round(ga.Cd * 10000,1), CLCd = round(ga.CL/ga.Cd,1),Cm = round(ga.Cm,4), thn = round(ga.thn * 100,4)))
 
+    def replot2(self,ga):
+        self.cfw.update_figure3()
+        shownom = numpy.shape(ga.history_CL)[0]-1
+        self.CLlabel.setText("CL : {CL:5}    Cd(count) : {Cd:4}    CL/Cd : {CLCd:4}    Cm : {Cm}     翼厚 : {thn:4}".format(CL = round(ga.hisrtory_CL[shownom], 4), Cd = round(ga.hisrtory_Cd[shownom] * 10000,1), CLCd = round(ga.CL/ga.Cd,1),Cm = round(ga.hisrtory_Cm[shownom],4), thn = round(ga.hisrtory_thn[shownom] * 100,4)))
+
+
 class Inputtarget_Setbutton_Widget(QtGui.QWidget):
     def __init__(self,parent = None,):
         QtGui.QWidget.__init__(self, parent = parent)
@@ -1419,7 +1425,6 @@ def main():
         writecsv.writerow(["---"])
 
         #sortedlist
-
         numpy.savetxt("numpyout.buff",ga.sortedlist,delimiter = ",",fmt="%.9f")
         f = open("numpyout.buff","r")
         csv_buff = csv.reader(f,delimiter = ',')
@@ -1430,6 +1435,34 @@ def main():
         os.remove("numpyout.buff")
         print(csv_writebuff)
 
+        for iter_sort in csv_writebuff:
+            writecsv.writerow(iter_sort)
+        writecsv.writerow(["---"])
+
+        #翼型
+        foiloutbuff = numpy.hstack([cfoil_widget.cfw.Fx,cfoil_widget.cfw.Fy])
+        numpy.savetxt("numpyout.buff",foiloubuff,delimiter = ",",fmt="%.9f")
+        f = open("numpyout.buff","r")
+        csv_buff = csv.reader(f,delimiter = ',')
+        csv_writebuff = []
+        for data in csv_buff:
+            csv_writebuff.append(data)
+        f.close()
+        os.remove("numpyout.buff")
+        for iter_sort in csv_writebuff:
+            writecsv.writerow(iter_sort)
+        writecsv.writerow(["---"])
+
+        #history
+        historyoutbuff = numpy.hstack([ga.history_Fcon,ga.history_CL,ga.history_Cd,ga.history_Cm,ga.history_CLCD,ga.history_thn,ga.history_generation])
+        numpy.savetxt("numpyout.buff",historyoubuff,delimiter = ",",fmt="%.9f")
+        f = open("numpyout.buff","r")
+        csv_buff = csv.reader(f,delimiter = ',')
+        csv_writebuff = []
+        for data in csv_buff:
+            csv_writebuff.append(data)
+        f.close()
+        os.remove("numpyout.buff")
         for iter_sort in csv_writebuff:
             writecsv.writerow(iter_sort)
         writecsv.writerow(["---"])
@@ -1630,16 +1663,42 @@ def main():
         input_widget.inputwidget.inputminCd.setText(csv_allfile[read_i][0])
 
         read_i += 2
-        input_array_buff = csv_allfile[read_i:numpy.shape(csv_allfile)[0]-1]
+        input_array_buff = csv_allfile[read_i:read_i + n_sample]
         fid = open("inputsorted.buff","w")
         writecsv = csv.writer(fid,lineterminator = "\n")
         writecsv.writerows(input_array_buff)
         fid.close()
         ga.sortedlist = numpy.loadtxt("inputsorted.buff",delimiter = ",")
-        print(ga.sortedlist)
+
+        read_i += n_sample+1
+        input_array_buff = csv_allfile[read_i:read_i + 2]
+        fid = open("inputbuff.buff","w")
+        writecsv = csv.writer(fid,lineterminator = "\n")
+        writecsv.writerows(input_array_buff)
+        fid.close()
+        foilbuff = numpy.loadtxt("inputbuff.buff",delimiter = ",")
+        cfoil_widget.cfw.Fx = foilbuff[0,:]
+        cfoil_widget.cfw.Fy = foilbuff[1,:]
+
+        read_i += 3
+        input_array_buff = csv_allfile[read_i:numpy.shape(csv_allfile)[0]-1]
+        fid = open("inputbuff.buff","w")
+        writecsv = csv.writer(fid,lineterminator = "\n")
+        writecsv.writerows(input_array_buff)
+        fid.close()
+        historybuff = numpy.loadtxt("inputbuff.buff",delimiter = ",")
+        ga.history_Fcon = historybuff[0,:]
+        ga.history_CL   = historybuff[1,:]
+        ga.history_Cd   = historybuff[2,:]
+        ga.history_Cm   = historybuff[3,:]
+        ga.history_CLCD = historybuff[4,:]
+        ga.history_thn  = historybuff[5,:]
+        ga.history_generation = historybuff[6,:]
+
 
         #dataplot を再描画する
         dataplotwidget.update_dataplot(ga,ga.generation)
+        cfoil_widget.replot2(ga)
 
     def about_XGAG():
         pass
