@@ -582,6 +582,7 @@ class GeneteticAlgolithm():
             self.sortedlist =[]
             self.CL_forplot = 0
             self.thn_forplot = 0
+            self.generation = 0
 
     def getFoilChord(self,other):
         self.no1x = other.no1.showfoil.Fx
@@ -1727,10 +1728,11 @@ def main():
 
 
     def save():
-        if "projectname" not in locals():
+        print(ga.generation)
+        if ga.generation == 0 :
+            QtGui.QMessageBox.warning(None,"Project Save ERROR","進捗がありません。解析を実行してからセーブして下さい\n")
+        elif "projectname" not in locals():
             save_as()
-        elif ga.generation == 0:
-            QtGui.QMessageBox.warning("進捗がありません")
         else:
             save_file()
 
@@ -1809,7 +1811,7 @@ def main():
     file_saveas = filemenu.addAction("&Save as")
     main_window.connect(file_new,QtCore.SIGNAL('triggered()'),newproject)
     main_window.connect(file_save,QtCore.SIGNAL('triggered()'),save)
-    main_window.connect(file_save,QtCore.SIGNAL('triggered()'),save_as)
+    main_window.connect(file_saveas,QtCore.SIGNAL('triggered()'),save_as)
     main_window.connect(file_open,QtCore.SIGNAL('triggered()'),open_file)
 
     optionmenu = menubar.addMenu("Option")
