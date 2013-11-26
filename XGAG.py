@@ -94,6 +94,10 @@ class FoilPlot(Matplot):
         self.axes.plot(self.Fx, self.Fy)
         self.draw()
 
+    def update_figure3(self):
+        self.axes.plot(self.Fx, self.Fy)
+        self.draw()
+
     def load(self):
         fid = open("default.ini",'r')
         self.foildirectory = fid.readline()
@@ -272,7 +276,7 @@ class CalclatedFoilWidget(QtGui.QWidget):
     def replot(self,ga,foilno = 0):
         self.cfw.Fx = ga.x
         self.cfw.Fy = ga.y_GA[foilno]
-        self.cfw.update_figure2()
+        self.cfw.update_figure3()
         self.CLlabel.setText("CL : {CL:5}    Cd(count) : {Cd:4}    CL/Cd : {CLCd:4}    Cm : {Cm}     翼厚 : {thn:4}".format(CL = round(ga.CL, 4), Cd = round(ga.Cd * 10000,1), CLCd = round(ga.CL/ga.Cd,1),Cm = round(ga.Cm,4), thn = round(ga.thn * 100,4)))
 
 class Inputtarget_Setbutton_Widget(QtGui.QWidget):
@@ -572,6 +576,9 @@ class GeneteticAlgolithm():
             self.pfCm = 0.0
             self.pfCL = 0.0
             self.pfthn =0.0
+            self.sortedlist =[]
+            self.CL_forplot = 0
+            self.thn_forplot = 0
 
     def getFoilChord(self,other):
         self.no1x = other.no1.showfoil.Fx
@@ -1403,11 +1410,12 @@ def main():
         writecsv.writerow([str(ga.pfthn)])
 
         #評価関数
-        writecsv.writerow([str(float(input_widget.inputwidget.inputalpha.text()))])
-        writecsv.writerow([str(float(input_widget.inputwidget.inputRe.text()))])
-        writecsv.writerow([str(float(input_widget.inputwidget.inputthn.text()))])
-        writecsv.writerow([str(float(input_widget.inputwidget.inputthnpos.text()))])
-        writecsv.writerow([str(float(input_widget.inputwidget.inputminCd.text()))])
+        writecsv.writerow([input_widget.inputwidget.inputalpha.text()])
+        writecsv.writerow([input_widget.inputwidget.inputRe.text()])
+        writecsv.writerow([input_widget.inputwidget.inputCL.text()])
+        writecsv.writerow([input_widget.inputwidget.inputthn.text()])
+        writecsv.writerow([input_widget.inputwidget.inputthnpos.text()])
+        writecsv.writerow([input_widget.inputwidget.inputminCd.text()])
         writecsv.writerow(["---"])
 
         #sortedlist
@@ -1595,6 +1603,40 @@ def main():
         n_sample = int(csv_allfile[read_i][0])
 
         #各設計パラメタおよびsortedlistの抽出
+        read_i += 1
+        input_widget.inputevafunc.P1.setText(csv_allfile[read_i][0])
+        read_i += 1
+        input_widget.inputevafunc.P2.setText(csv_allfile[read_i][0])
+        read_i += 1
+        input_widget.inputevafunc.P3.setText(csv_allfile[read_i][0])
+        read_i += 1
+        input_widget.inputevafunc.P4.setText(csv_allfile[read_i][0])
+
+
+        read_i += 1
+        input_widget.inputwidget.inputalpha.setText(csv_allfile[read_i][0])
+        read_i += 1
+        input_widget.inputwidget.inputRe.setText(csv_allfile[read_i][0])
+        read_i += 1
+        input_widget.inputwidget.inputCL.setText(csv_allfile[read_i][0])
+        ga.CL_forplot = float(csv_allfile[read_i][0])
+        read_i += 1
+        input_widget.inputwidget.inputthn.setText(csv_allfile[read_i][0])
+        ga.thn_forplot = float(csv_allfile[read_i][0])
+        read_i += 1
+        input_widget.inputwidget.inputthnpos.setText(csv_allfile[read_i][0])
+        read_i += 1
+        print(csv_allfile[read_i][0])
+        input_widget.inputwidget.inputminCd.setText(csv_allfile[read_i][0])
+
+        read_i += 2
+        input_array_buff = csv_allfile[read_i:numpy.shape(csv_allfile)[0]-1]
+        fid = open("inputsorted.buff","w")
+        writecsv = csv.writer(fid,lineterminator = "\n")
+        writecsv.writerows(input_array_buff)
+        fid.close()
+        ga.sortedlist = numpy.loadtxt("inputsorted.buff",delimiter = ",")
+        print(ga.sortedlist)
 
         #dataplot を再描画する
         dataplotwidget.update_dataplot(ga,ga.generation)
