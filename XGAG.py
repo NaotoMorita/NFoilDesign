@@ -583,6 +583,7 @@ class GeneteticAlgolithm():
             self.CL_forplot = 0
             self.thn_forplot = 0
             self.generation = 0
+            self.hash_GA = []
 
     def getFoilChord(self,other):
         self.no1x = other.no1.showfoil.Fx
@@ -665,14 +666,16 @@ class GeneteticAlgolithm():
             self.gene2[n] = [0,0,0,0,0,0,0,0]
             for i in range(8):
                 self.gene2[n][i] = str(bin(self.parameter10[n][i]))[2:].zfill(12)
-            self.hash_GA[n] = str(hash(str(self.gene2[n])))
+
 
 
 
     def gene2coeficient(self):
         self.coefficient_ratio = [0]*n_sample
         self.coefficient = [0]*n_sample
+        self.hash_GA = [0]*n_sample
         for n in range(n_sample):
+            self.hash_GA[n] = str(hash(str(self.gene2[n])))
             self.coefficient_ratio[n] = [0,0,0,0,0,0,0,0]
             self.coefficient[n] = [0,0,0,0,0,0,0,0]
             for i in range(8):
@@ -1717,7 +1720,8 @@ def main():
         cfoil_widget.outputbutton.setEnabled(True)
         cfoil_widget.combobox.setEnabled(True)
 
-
+        ga.getFoilChord(basefoilpanel)
+        ga.defineFoil()
 
     def about_XGAG():
         pass
