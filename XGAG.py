@@ -1360,6 +1360,11 @@ def main():
         input_widget.inputwidget.inputthnpos.setText('36')
         input_widget.inputwidget.inputminCd.setText('75')
 
+        input_widget.inputevafunc.P1.setText('1')
+        input_widget.inputevafunc.P2.setText('0')
+        input_widget.inputevafunc.P3.setText('5')
+        input_widget.inputevafunc.P4.setText('10')
+
         titleexeprogress.inputindno.setDisabled(0)
         titleexeprogress.stopbutton.setDisabled(1)
         input_widget.inputwidget.inputalpha.setDisabled(0)
@@ -1764,7 +1769,11 @@ def main():
     def save_as():
         global projectname
         projectname = QtGui.QFileDialog.getSaveFileName(None, caption = "project name",directory = os.path.join(default.foildirectory),filter = "XGAG csv File(*.csv)")
-        if projectname:
+        if not projectname:
+            pass
+        elif ga.generation <= 1:
+            main_window.setWindowTitle("XGAG -{projectname}".format(projectname = os.path.basename(projectname)))
+        else:
             save_file()
 
     def save():
