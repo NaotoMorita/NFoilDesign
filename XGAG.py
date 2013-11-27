@@ -104,13 +104,14 @@ class FoilPlot(Matplot):
         self.foildirectory = fid.readline()
         self.foildirectory = self.foildirectory.rstrip("\n")
         fid.close()
+        temp = copy.deepcopy(self.filename)
         self.filename = QtGui.QFileDialog.getOpenFileName(parent = None,caption = "OPEN FOIL" ,directory=self.foildirectory, filter="Foil Chord File(*.dat *.txt)")
-        if not self.filename:
-            foil = numpy.array([[0.0,0.0],[0.0,0.0]])
-        else:
+        if self.filename:
             foil = numpy.loadtxt(self.filename,skiprows=1)
-        self.Fx = foil[:,0]
-        self.Fy = foil[:,1]
+            self.Fx = foil[:,0]
+            self.Fy = foil[:,1]
+        else:
+            self.filename = temp
 
 class DataPlot(Matplot):
     """A canvas that updates itself every second with a new plot."""
@@ -251,7 +252,7 @@ class CalclatedFoilWidget(QtGui.QWidget):
 
         self.datapanel = QtGui.QWidget(parent = self.itgcfw)
         self.CLlabel = QtGui.QLabel()
-        self.CLlabel.setText("揚力係数CL : {CL}    抗力係数Cd(*10000) : {Cd}    揚抗比CL/Cd : {CLCd}    モーメント係数Cm : {Cm}     翼厚 : {thn:4}".format(CL = round(ga.CL, 4), Cd = "NaN", CLCd = "NaN",Cm = "Nan", thn = "NaN"))
+        self.CLlabel.setText("揚力係数CL : {CL}    抗力係数Cd(*10000) : {Cd}    揚抗比CL/Cd : {CLCd}    モーメント係数Cm : {Cm}     翼厚 : {thn:4}".format(CL = "NaN", Cd = "NaN", CLCd = "NaN",Cm = "Nan", thn = "NaN"))
         self.CLlabel.setFont(font)
         self.outputbutton = QtGui.QPushButton("export foil",parent = self.datapanel)
         self.outputbutton.setFont(font)
@@ -1367,7 +1368,7 @@ def main():
         cfoil_widget.combobox.setEnabled(False)
 
         titleexeprogress.progressbar.reset()
-        cfoil_widget.CLlabel.setText("揚力係数CL : {CL}    抗力係数Cd(*10000) : {Cd}    揚抗比CL/Cd : {CLCd}    モーメント係数Cm : {Cm}     翼厚 : {thn:4}".format(CL = 0, Cd = "NaN", CLCd = "NaN",Cm = "Nan", thn = "NaN"))
+        cfoil_widget.CLlabel.setText("揚力係数CL : {CL}    抗力係数Cd(*10000) : {Cd}    揚抗比CL/Cd : {CLCd}    モーメント係数Cm : {Cm}     翼厚 : {thn:4}".format(CL = "NaN", Cd = "NaN", CLCd = "NaN",Cm = "Nan", thn = "NaN"))
         titleexeprogress.progressbar.reset()
         global projectname
         projectname = ""
