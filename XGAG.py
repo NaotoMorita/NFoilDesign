@@ -19,13 +19,6 @@ from PyQt4 import QtGui, QtCore
 import matplotlib.backends.backend_qt4agg
 import matplotlib.backends.backend_agg
 
-        matplotlib.rc('xtick', labelsize=0)
-        matplotlib.rc('ytick', labelsize=0)
-        font = {'family' : 'normal',
-        'weight' : 'bold',
-        'size'   : 22}
-        matplotlib.rc('font', **font)
-
 
 #import to exe XFoil
 import subprocess
@@ -63,6 +56,7 @@ class FoilPlot(Matplot):
     def __init__(self,default, *args, **kwargs):
         Matplot.__init__(self, *args, **kwargs)
         self.foildirectory = default.foildirectory
+        self.axes.tick_params(axis='both', which='major', labelsize=0)
 
     def compute_initial_figure(self,default_foil):
         self.filename = default_foil
@@ -122,6 +116,8 @@ class DataPlot(Matplot):
     """A canvas that updates itself every second with a new plot."""
     def __init__(self, *args, **kwargs):
         Matplot.__init__(self, *args, **kwargs)
+        self.axes.tick_params(axis='both', which='major', labelsize=20)
+
 
     def compute_initial_figure(self):
         self.axes.set_aspect("auto")
@@ -134,8 +130,9 @@ class DataPlot(Matplot):
             self.axes.set_xlim(xlim)
         if ylim != None:
             self.axes.set_ylim(ylim)
-        self.axes.set_xlabel(xlabel)
-        self.axes.set_ylabel(ylabel)
+        self.axes.set_xlabel(xlabel,fontsize = 20)
+        self.axes.set_ylabel(ylabel,fontsize = 20)
+        self.axes.tick_params(axis='both', labelsize=20)
 
 
         self.draw()
@@ -512,8 +509,12 @@ class TitleExeStopProgressWidget(QtGui.QWidget):
         self.titleprogress = QtGui.QWidget(parent = self)
 
         #self.title = QtGui.QLabel(("<font size = 10> XGAG </font> <font size = 5> -Genetic Algorithm Gui airfoil design tool-  </font>"))
-        self.progressbar = QtGui.QProgressBar(parent = self.titleprogress)
+        self.progressbar = QtGui.QProgressBar(None)
         self.progressbar.setFixedSize(300,30)
+        self.savedonelabel = QtGui.QLabel(None)
+        self.savedonelabel.setText("")
+
+
 
         font = QtGui.QFont()
         font.setPointSize(12)
@@ -532,6 +533,7 @@ class TitleExeStopProgressWidget(QtGui.QWidget):
         }
         """
         self.progressbar.setStyleSheet(DEFAULT_STYLE)
+
 
         self.indno = QtGui.QLabel(parent = self.second)
         self.indno.setText("個体数 : ")
@@ -1033,18 +1035,18 @@ class Export_Filt_Foil():
         fid.close()
 
     def dialog(self,cfoil_widget,input_widget,default):
-        ret = QtGui.QMessageBox.question(None,"EXPORT Foil",
+        ret = QtGui.QMessageBox.question(None,"export foil",
                         "世代:{generation}を出力します\n速度分布の平滑化行いますか？".format(generation = int(cfoil_widget.combobox.currentText())),
                         QtGui.QMessageBox.Yes | QtGui.QMessageBox.No | QtGui.QMessageBox.Cancel,QtGui.QMessageBox.Yes)
         if ret == QtGui.QMessageBox.Yes:
-            self.export_foilname = QtGui.QFileDialog.getSaveFileName(None, caption = "EXPORT Foil(Filet)",
+            self.export_foilname = QtGui.QFileDialog.getSaveFileName(None, caption = "export foil(速度分布平滑化)",
                                     directory = os.path.join(default.foildirectory,"XGAGf{generation}".format(generation =
                                     int(cfoil_widget.combobox.currentText()))), filter = "Foil Chord File(*.dat)")
             alpha = float(input_widget.inputwidget.inputalpha.text())
             self.filt_foil(alpha)
             self.do_export()
         elif ret == QtGui.QMessageBox.No:
-            self.export_foilname = QtGui.QFileDialog.getSaveFileName(None, caption = "EXPORT Foil(Filet)",
+            self.export_foilname = QtGui.QFileDialog.getSaveFileName(None, caption = "export foil(速度分布平滑化無し)",
                                     directory = os.path.join(default.foildirectory,"XGAGf{generation}".format(generation =
                                     int(cfoil_widget.combobox.currentText()))), filter = "Foil Chord File(*.dat)")
             self.do_export()
@@ -1238,14 +1240,14 @@ def main():
         if ga.generation < max_generation:
             while ga.generation < max_generation:
                 qApp.processEvents()
-
+                titleexeprogress.savedonelabel.setText("")
                 if ga.run !=0 and ga.run !=2 :
                     break
                 ga.generation += 1
 
+
                 if ga.generation == 1:
                     titleexeprogress.generation.setText("  世代 : 0 / ")
-                    global n_sample
                     n_sample = int(titleexeprogress.inputindno.text())
                     titleexeprogress.inputindno.setDisabled(1)
 
@@ -1254,6 +1256,7 @@ def main():
                     ga.default_gene()
                     ga.gene2coeficient()
                     ga.coeficient2foil()
+                    ga.run = 2
                     ga.exeXFoil(qApp,titleexeprogress,input_widget)
 
                     if ga.run == 0 or ga.run == 2:
@@ -1264,6 +1267,7 @@ def main():
                     titleexeprogress.generation.setText("世代 : {fgene} / ".format(fgene = ga.generation-1))
                     ga.gene2coeficient()
                     ga.coeficient2foil()
+                    ga.run = 2
                     ga.exeXFoil(qApp,titleexeprogress,input_widget)
                     if ga.run == 0 or ga.run == 2:
                         ga.evaluete_cross(input_widget,ga.generation)
@@ -1344,6 +1348,7 @@ def main():
 
         ga.save_top = [0]
         ga.save_topValue = [0]
+        ga.run = 0
 
         titleexeprogress.exebutton.setText("start")
         titleexeprogress.stopbutton.setText("stop")
@@ -1363,6 +1368,12 @@ def main():
 
         titleexeprogress.progressbar.reset()
         cfoil_widget.CLlabel.setText("揚力係数CL : {CL}    抗力係数Cd(*10000) : {Cd}    揚抗比CL/Cd : {CLCd}    モーメント係数Cm : {Cm}     翼厚 : {thn:4}".format(CL = 0, Cd = "NaN", CLCd = "NaN",Cm = "Nan", thn = "NaN"))
+        titleexeprogress.progressbar.reset()
+        global projectname
+        projectname = ""
+        main_window.setWindowTitle("XGAG")
+        titleexeprogress.savedonelabel.setText("新規プロジェクトを開始しました")
+
 
     def rollback():
         ret = QtGui.QMessageBox.question(None,"revert", "世代:{generation}を最も優れた翼型として登録します\n(評価関数が最大値をとった翼型は登録され、毎世代投入されます)\nよろしいですか？".format(generation = int(cfoil_widget.combobox.currentText())),
@@ -1376,10 +1387,12 @@ def main():
     def expot_foil():
         export.gene2foil(ga,int(cfoil_widget.combobox.currentText()))
         export.dialog(cfoil_widget,input_widget,default)
+        titleexeprogress.savedonelabel.setText("世代:{gene}の翼型を出力しました".format(gene = cfoil_widget.combobox.currentText()))
 
     def save_file():
         fid = open(projectname,"w")
         writecsv = csv.writer(fid,lineterminator = "\n")
+        writecsv.writerow(["#! XGAG SAVE FILE"])
         writecsv.writerows(ga.gene2)
 
         writecsv = csv.writer(fid,lineterminator = "\n")
@@ -1455,7 +1468,6 @@ def main():
             csv_writebuff.append(data)
         f.close()
         os.remove("numpyout.buff")
-        print(csv_writebuff)
 
         for iter_sort in csv_writebuff:
             writecsv.writerow(iter_sort)
@@ -1490,14 +1502,13 @@ def main():
         writecsv.writerow(["---"])
 
         fid.close()
-
-        print(ga.history_Fcon)
-
+        titleexeprogress.savedonelabel.setText("セーブが完了しました")
+        main_window.setWindowTitle("XGAG -{projectname}".format(projectname = os.path.basename(projectname)))
 
     def open_file():
-        global projectname
         #CSVリストの作成
-        projectname= QtGui.QFileDialog.getOpenFileName(parent = None,caption = "open project" ,directory=os.path.join(default.foildirectory), filter="XGAG File(*.gag)")
+        global projectname
+        projectname= QtGui.QFileDialog.getOpenFileName(parent = None,caption = "open project" ,directory=os.path.join(default.foildirectory), filter="XGAG csv File(*.csv)")
         if projectname:
             fid = open(projectname)
             csv_openfile = csv.reader(fid,delimiter = ',')
@@ -1509,7 +1520,7 @@ def main():
 
             #リストよりgene抽出
             gene = []
-            read_i = 0
+            read_i = 1
             while 1:
                 if csv_allfile[read_i] == ['---']:
                     break
@@ -1549,8 +1560,6 @@ def main():
             ga.history_CL = numpy.array(history_CL_list)
             read_i += 1
 
-            print(ga.history_CL)
-
 
             #history_Cd
 
@@ -1564,7 +1573,6 @@ def main():
             ga.history_Cd = numpy.array(history_Cd_list)
             read_i += 1
 
-            print(ga.history_Cd)
 
             #history_CLCD
             history_Cm_list = []
@@ -1577,7 +1585,7 @@ def main():
             ga.history_Cm = numpy.array(history_Cm_list)
             read_i += 1
 
-            print(ga.history_Cm)
+
 
             #history_CLCD
             history_CLCD_list = []
@@ -1590,7 +1598,6 @@ def main():
             ga.history_CLCD = numpy.array(history_CLCD_list)
             read_i += 1
 
-            print(ga.history_CLCD)
 
             #history_thn
             history_thn_list = []
@@ -1603,7 +1610,6 @@ def main():
             ga.history_thn = numpy.array(history_thn_list)
             read_i += 1
 
-            print(ga.history_thn)
 
             #history_haistory_topval
             history_topValue_list = []
@@ -1616,8 +1622,6 @@ def main():
             ga.history_topValue = history_topValue_list
             read_i += 1
 
-            print(ga.history_topValue)
-
 
             history_top = []
             while 1:
@@ -1629,7 +1633,6 @@ def main():
             ga.history_top = history_top
             read_i += 1
 
-            print(ga.history_top)
             #リストよりbasefail名抽出
 
             basefoilpanel.no1.showfoil.filename = csv_allfile[read_i][0]
@@ -1653,7 +1656,6 @@ def main():
             ga.generation = int(csv_allfile[read_i][0])
             titleexeprogress.generation.setText("世代 : {fgene} / ".format(fgene = ga.generation-1))
             read_i += 1
-            global n_sample
             n_sample = int(csv_allfile[read_i][0])
 
             #各設計パラメタおよびsortedlistの抽出
@@ -1684,7 +1686,6 @@ def main():
             read_i += 1
             input_widget.inputwidget.inputthnpos.setText(csv_allfile[read_i][0])
             read_i += 1
-            print(csv_allfile[read_i][0])
             input_widget.inputwidget.inputminCd.setText(csv_allfile[read_i][0])
 
 
@@ -1695,28 +1696,29 @@ def main():
             writecsv = csv.writer(fid,lineterminator = "\n")
             writecsv.writerows(input_array_buff)
             fid.close()
-            ga.sortedlist = numpy.loadtxt("inputsorted.buff",delimiter = ",")
+            ga.sortedlist = numpy.loadtxt("inputsorted.buff",delimiter = ",",ndmin = 2)
+            os.remove("inputsorted.buff")
 
             read_i += n_sample+1
-            print(n_sample)
             input_array_buff = csv_allfile[read_i:read_i + 2]
             fid = open("inputbuff.buff","w")
             writecsv = csv.writer(fid,lineterminator = "\n")
             writecsv.writerows(input_array_buff)
             fid.close()
-            foilbuff = numpy.loadtxt("inputbuff.buff",delimiter = ",")
+            foilbuff = numpy.loadtxt("inputbuff.buff",delimiter = ",",ndmin = 2)
+            os.remove("inputbuff.buff")
             cfoil_widget.cfw.Fx = foilbuff[0,:]
             cfoil_widget.cfw.Fy = foilbuff[1,:]
 
+
             read_i += 3
-            print(read_i)
-            print(numpy.shape(csv_allfile)[0])
             input_array_buff = csv_allfile[read_i:numpy.shape(csv_allfile)[0]-1]
-            fid = open("inputbuff2.buff","w")
+            fid = open("inputbuff.buff","w")
             writecsv = csv.writer(fid,lineterminator = "\n")
             writecsv.writerows(input_array_buff)
             fid.close()
-            historybuff = numpy.loadtxt("inputbuff2.buff",delimiter = ",")
+            historybuff = numpy.loadtxt("inputbuff.buff",delimiter = ",",ndmin = 2)
+            os.remove("inputbuff.buff")
             ga.history_Fcon = historybuff[0,:]
             ga.history_CL   = historybuff[1,:]
             ga.history_Cd   = historybuff[2,:]
@@ -1745,25 +1747,46 @@ def main():
 
             ga.getFoilChord(basefoilpanel)
             ga.defineFoil()
+            ga.run = 1
+            titleexeprogress.inputindno.setDisabled(1)
+            input_widget.inputwidget.inputalpha.setDisabled(1)
+
+            for combo_n in range(ga.generation-1,0,-1):
+                cfoil_widget.combobox.addItem(str(combo_n))
+
+            main_window.setWindowTitle("XGAG -{projectname}".format(projectname = os.path.basename(projectname)))
+            titleexeprogress.savedonelabel.setText("ロードが完了しました")
 
     def about_XGAG():
         pass
 
     def save_as():
         global projectname
-        projectname = QtGui.QFileDialog.getSaveFileName(None, caption = "project name",directory = os.path.join(default.foildirectory),filter = "XGAG File(*.gag)")
+        projectname = QtGui.QFileDialog.getSaveFileName(None, caption = "project name",directory = os.path.join(default.foildirectory),filter = "XGAG csv File(*.csv)")
         if projectname:
             save_file()
 
     def save():
-        print(ga.generation)
-        if ga.generation == 0 :
-            QtGui.QMessageBox.warning(None,"project save ERROR","進捗がありません。解析を実行してからセーブして下さい\n")
-        elif "projectname" not in globals():
+        global projectname
+        if ga.generation <= 1 :
+            projectname = QtGui.QFileDialog.getSaveFileName(None, caption = "project name",directory = os.path.join(default.foildirectory),filter = "XGAG csv File(*.csv)")
+            main_window.setWindowTitle("XGAG -{projectname}".format(projectname = os.path.basename(projectname)))
+        elif not projectname:
             save_as()
         else:
             save_file()
 
+    def openif():
+        if ga.run != 2:
+            open_file()
+        else:
+            titleexeprogress.savedonelabel.setText("最適化をストップしてからオープンして下さい")
+
+    def new():
+        if ga.run != 2 :
+            newproject()
+        else:
+            titleexeprogress.savedonelabel.setText("最適化をストップしてから新規プロジェクトを開始して下さい")
 
     qApp = QtGui.QApplication(sys.argv)
 
@@ -1786,6 +1809,9 @@ def main():
 #---------初期化のための再実行ここから
     #GA実行インスタンス
     ga = GeneteticAlgolithm()
+    global projectname
+    projectname = ""
+
 
     #右側の翼型選択ウィジット
     basefoilpanel = BaseFoilWidget(default, parent = main_panel)
@@ -1803,6 +1829,8 @@ def main():
     dataplotwidget = DataPlotWidget(parent = input_data_panel)
     titleexeprogress = TitleExeStopProgressWidget(parent = input_data_panel)
     titleexeprogress.stopbutton.setDisabled(1)
+    global n_sample
+    n_sample = int(titleexeprogress.inputindno.text())
     #データ表示ウィジットのレイアウト
     input_data_panel_layput = QtGui.QVBoxLayout()
     input_data_panel_layput.addWidget(titleexeprogress)
@@ -1837,15 +1865,15 @@ def main():
     file_save = filemenu.addAction("&Save")
     file_save.setShortcut('Ctrl+S')
     file_saveas = filemenu.addAction("&Save as")
-    main_window.connect(file_new,QtCore.SIGNAL('triggered()'),newproject)
+    main_window.connect(file_new,QtCore.SIGNAL('triggered()'),new)
     main_window.connect(file_save,QtCore.SIGNAL('triggered()'),save)
     main_window.connect(file_saveas,QtCore.SIGNAL('triggered()'),save_as)
-    main_window.connect(file_open,QtCore.SIGNAL('triggered()'),open_file)
+    main_window.connect(file_open,QtCore.SIGNAL('triggered()'),openif)
 
     #ステータスバーにprogressを表示
     statusbar = QtGui.QStatusBar(main_window)
     statusbar.addWidget(titleexeprogress.progressbar)
-
+    statusbar.addWidget(titleexeprogress.savedonelabel)
     main_window.setStatusBar(statusbar)
 
     optionmenu = menubar.addMenu("Option")
