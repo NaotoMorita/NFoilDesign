@@ -19,14 +19,6 @@ from PyQt4 import QtGui, QtCore
 import matplotlib.backends.backend_qt4agg
 import matplotlib.backends.backend_agg
 
-        matplotlib.rc('xtick', labelsize=0)
-        matplotlib.rc('ytick', labelsize=0)
-        font = {'family' : 'normal',
-        'weight' : 'bold',
-        'size'   : 22}
-        matplotlib.rc('font', **font)
-
-
 #import to exe XFoil
 import subprocess
 import shutil
@@ -44,7 +36,6 @@ class Matplot(matplotlib.backends.backend_qt4agg.FigureCanvasQTAgg):
         self.axes.hold(False)
         self.axes.set_aspect("equal")
         self.axes.set_xlim(0,1)
-
 
         matplotlib.backends.backend_qt4agg.FigureCanvasQTAgg.__init__(self, fig)
         self.setParent(parent)
@@ -66,7 +57,6 @@ class FoilPlot(Matplot):
 
     def compute_initial_figure(self,default_foil):
         self.filename = default_foil
-
         if not self.filename:
             foil = numpy.array([[0.0,0.0],[0.0,0.0]])
         else:
@@ -161,9 +151,9 @@ class BaseFoilWidget(QtGui.QWidget):
         self.no1 = QtGui.QGroupBox(parent = self.basepanel)
         self.no1.showfoil = FoilPlot(default,parent = self.no1)
         self.no1.showfoil.compute_initial_figure(default.default_no1)
-        self.no1.setTitle("foil No.1 - {foilname}".format(foilname = os.path.basename(self.no1.showfoil.filename)))
+        self.no1.setTitle("Foil No.1 - {foilname}".format(foilname = os.path.basename(self.no1.showfoil.filename)))
         self.no1.setFont(font)
-        self.no1.openbutton = QtGui.QPushButton("open foil No.1")
+        self.no1.openbutton = QtGui.QPushButton("OPEN Foil No.1")
         self.no1.openbutton.setFont(font)
         self.no1.layout = QtGui.QVBoxLayout()
         self.no1.layout.addWidget(self.no1.showfoil)
@@ -171,33 +161,33 @@ class BaseFoilWidget(QtGui.QWidget):
         self.no1.setLayout(self.no1.layout)
 
 #第2翼型
-        self.no2 = QtGui.QGroupBox("foil No.2",parent = self.basepanel)
+        self.no2 = QtGui.QGroupBox("Foil No.2",parent = self.basepanel)
         self.no2.showfoil = FoilPlot(default, parent = self.no2)
         self.no2.showfoil.compute_initial_figure(default.default_no2)
-        self.no2.setTitle("foil No.2 - {foilname}".format(foilname = os.path.basename(self.no2.showfoil.filename)))
-        self.no2.openbutton = QtGui.QPushButton("open foil No.2")
+        self.no2.setTitle("Foil No.2 - {foilname}".format(foilname = os.path.basename(self.no2.showfoil.filename)))
+        self.no2.openbutton = QtGui.QPushButton("OPEN Foil No.2")
         self.no2.layout = QtGui.QVBoxLayout()
         self.no2.layout.addWidget(self.no2.showfoil)
         self.no2.layout.addWidget(self.no2.openbutton)
         self.no2.setLayout(self.no2.layout)
 
 #第3翼型
-        self.no3 = QtGui.QGroupBox("foil No.3",parent = self.basepanel)
+        self.no3 = QtGui.QGroupBox("Foil No.3",parent = self.basepanel)
         self.no3.showfoil = FoilPlot(default, parent = self.no3)
         self.no3.showfoil.compute_initial_figure(default.default_no3)
-        self.no3.setTitle("foil No.3 - {foilname}".format(foilname = os.path.basename(self.no3.showfoil.filename)))
-        self.no3.openbutton = QtGui.QPushButton("open foil No.3")
+        self.no3.setTitle("Foil No.3 - {foilname}".format(foilname = os.path.basename(self.no3.showfoil.filename)))
+        self.no3.openbutton = QtGui.QPushButton("OPEN Foil No.3")
         self.no3.layout = QtGui.QVBoxLayout()
         self.no3.layout.addWidget(self.no3.showfoil)
         self.no3.layout.addWidget(self.no3.openbutton)
         self.no3.setLayout(self.no3.layout)
 
 #第4翼型
-        self.no4 = QtGui.QGroupBox("foil No.4",parent = self.basepanel)
+        self.no4 = QtGui.QGroupBox("Foil No.4",parent = self.basepanel)
         self.no4.showfoil = FoilPlot(default, parent = self.no4)
         self.no4.showfoil.compute_initial_figure(default.default_no4)
-        self.no4.setTitle("foil No.4 - {foilname}".format(foilname = os.path.basename(self.no4.showfoil.filename)))
-        self.no4.openbutton = QtGui.QPushButton("open Foil No.4")
+        self.no4.setTitle("Foil No.4 - {foilname}".format(foilname = os.path.basename(self.no4.showfoil.filename)))
+        self.no4.openbutton = QtGui.QPushButton("OPEN Foil No.4")
         self.no4.layout = QtGui.QVBoxLayout()
         self.no4.layout.addWidget(self.no4.showfoil)
         self.no4.layout.addWidget(self.no4.openbutton)
@@ -218,22 +208,22 @@ class BaseFoilWidget(QtGui.QWidget):
 
     def updatefigure_changelabel_no1(self):
         self.no1.showfoil.update_figure()
-        self.no1.setTitle("foil No.1 - {foilname}".format(foilname = os.path.basename(self.no1.showfoil.filename)))
+        self.no1.setTitle("Foil No.1 - {foilname}".format(foilname = os.path.basename(self.no1.showfoil.filename)))
         #self.no1.foilnamelabel.setText(os.path.basename(self.no1.showfoil.filename))
 
     def updatefigure_changelabel_no2(self):
         self.no2.showfoil.update_figure()
-        self.no2.setTitle("foil No.2 - {foilname}".format(foilname = os.path.basename(self.no2.showfoil.filename)))
+        self.no2.setTitle("Foil No.2 - {foilname}".format(foilname = os.path.basename(self.no2.showfoil.filename)))
         #self.no2.foilnamelabel.setText(os.path.basename(self.no2.showfoil.filename))
 
     def updatefigure_changelabel_no3(self):
         self.no3.showfoil.update_figure()
-        self.no3.setTitle("foil No.3 - {foilname}".format(foilname = os.path.basename(self.no3.showfoil.filename)))
+        self.no3.setTitle("Foil No.3 - {foilname}".format(foilname = os.path.basename(self.no3.showfoil.filename)))
         #self.no3.foilnamelabel.setText(os.path.basename(self.no3.showfoil.filename))
 
     def updatefigure_changelabel_no4(self):
         self.no4.showfoil.update_figure()
-        self.no4.setTitle("foil No.4 - {foilname}".format(foilname = os.path.basename(self.no4.showfoil.filename)))
+        self.no4.setTitle("Foil No.4 - {foilname}".format(foilname = os.path.basename(self.no4.showfoil.filename)))
 
         #self.no4.foilnamelabel.setText(os.path.basename(self.no4.showfoil.filename))
 
@@ -256,13 +246,13 @@ class CalclatedFoilWidget(QtGui.QWidget):
         self.CLlabel = QtGui.QLabel()
         self.CLlabel.setText("揚力係数CL : {CL}    抗力係数Cd(*10000) : {Cd}    揚抗比CL/Cd : {CLCd}    モーメント係数Cm : {Cm}     翼厚 : {thn:4}".format(CL = round(ga.CL, 4), Cd = "NaN", CLCd = "NaN",Cm = "Nan", thn = "NaN"))
         self.CLlabel.setFont(font)
-        self.outputbutton = QtGui.QPushButton("export foil",parent = self.datapanel)
+        self.outputbutton = QtGui.QPushButton("EXPORT FOIL",parent = self.datapanel)
         self.outputbutton.setFont(font)
 
-        self.outputbutton.setFixedWidth(100)
-        self.rollbackbutton = QtGui.QPushButton("revert",parent = self.datapanel)
+        self.outputbutton.setFixedWidth(150)
+        self.rollbackbutton = QtGui.QPushButton("Elite REVERT",parent = self.datapanel)
         self.rollbackbutton.setFont(font)
-        self.rollbackbutton.setFixedWidth(100)
+        self.rollbackbutton.setFixedWidth(150)
         self.combobox = QtGui.QComboBox()
         self.combobox.setFixedWidth(40)
 
@@ -426,21 +416,13 @@ class DataPlotWidget(QtGui.QWidget):
         QtGui.QWidget.__init__(self, parent = parent)
 
         self.main_widget = QtGui.QWidget(parent = self)
-        frame = QtGui.QGroupBox("各個体の評価関数の値",parent = self.main_widget)
-        frame.setMinimumSize(200,200)
-
-        self.Fconplot = DataPlot(parent = frame)
+        self.Fconplot = DataPlot(parent = self.main_widget)
         self.convhistory = QtGui.QTabWidget(parent = self.main_widget)
         self.convhistory.setMinimumSize(200,200)
         conv_widget = QtGui.QWidget(parent = self.convhistory)
         evo_widget = QtGui.QWidget(parent = self.convhistory)
 
         self.Fconplot.compute_initial_figure()
-        frame_layout = QtGui.QHBoxLayout()
-        frame_layout.addWidget(self.Fconplot)
-        frame.setLayout(frame_layout)
-
-
 
         self.conv_CLplot = DataPlot(parent = conv_widget)
         self.conv_CLplot.compute_initial_figure()
@@ -471,7 +453,7 @@ class DataPlotWidget(QtGui.QWidget):
         self.convhistory.addTab(evo_widget,"履歴")
 
         main_widget_layout = QtGui.QHBoxLayout()
-        main_widget_layout.addWidget(frame)
+        main_widget_layout.addWidget(self.Fconplot)
         main_widget_layout.addWidget(self.convhistory)
         self.main_widget.setLayout(main_widget_layout)
 
@@ -494,7 +476,7 @@ class DataPlotWidget(QtGui.QWidget):
         self.evo_Fconplot.datax = ga.history_generation
 
         self.evo_Fconplot.datay = ga.history_Fcon
-        self.evo_Fconplot.update_figure(ylabel = "Val of EF",xlabel = "Generation")
+        self.evo_Fconplot.update_figure(ylabel = "Val of VF",xlabel = "Generation")
         self.evo_CLplot.datax = ga.history_generation
         self.evo_CLplot.datay = ga.history_CL
         self.evo_CLplot.update_figure(ylabel = "CL",xlabel = "Generation")
@@ -547,11 +529,10 @@ class TitleExeStopProgressWidget(QtGui.QWidget):
         self.inputgeneration.setFixedWidth(30)
         self.inputgeneration.setText("50")
 
-        self.exebutton = QtGui.QPushButton("start")
-        self.exebutton.setFixedWidth(70)
+        self.exebutton = QtGui.QPushButton("START")
+        self.exebutton.setFixedWidth(120)
         self.exebutton.setFont(font)
-        self.stopbutton = QtGui.QPushButton("stop")
-        self.stopbutton.setFixedWidth(70)
+        self.stopbutton = QtGui.QPushButton("STOP")
         self.stopbutton.setFont(font)
 
         self.second.layout = QtGui.QHBoxLayout()
@@ -1290,19 +1271,19 @@ def main():
 
 
     def startGA():
-        ret = QtGui.QMessageBox.question(None,"export foil", "世代:0から最適化計算を実行します\nよろしいですか？",
+        ret = QtGui.QMessageBox.question(None,"EXPORT Foil", "世代:0から最適化計算を実行します\nよろしいですか？",
                         QtGui.QMessageBox.Yes | QtGui.QMessageBox.No ,QtGui.QMessageBox.Yes)
         if ret == QtGui.QMessageBox.Yes:
             ga.generation = 0
             ga.run = 0
             ga.save_top = [0]
             ga.save_topValue = [0]
-            titleexeprogress.exebutton.setText("restart")
+            titleexeprogress.exebutton.setText("RESTART zero")
             font = QtGui.QFont()
             font.setPointSize(12)
             titleexeprogress.exebutton.setFont(font)
 
-            titleexeprogress.stopbutton.setText("stop")
+            titleexeprogress.stopbutton.setText("STOP")
             titleexeprogress.stopbutton.setFont(font)
             cfoil_widget.rollbackbutton.setEnabled(False)
             cfoil_widget.outputbutton.setEnabled(False)
@@ -1314,14 +1295,14 @@ def main():
         if ga.run == 0 or ga.run == 2 :
 
             ga.run = 1
-            titleexeprogress.stopbutton.setText("resume")
+            titleexeprogress.stopbutton.setText("RESUME")
             cfoil_widget.rollbackbutton.setEnabled(True)
             cfoil_widget.outputbutton.setEnabled(True)
             cfoil_widget.combobox.setEnabled(True)
         elif ga.generation < int(titleexeprogress.inputgeneration.text())+1:
             ga.run = 2
             ga.generation -= 1
-            titleexeprogress.stopbutton.setText("stop")
+            titleexeprogress.stopbutton.setText("STOP")
             cfoil_widget.rollbackbutton.setEnabled(False)
             cfoil_widget.outputbutton.setEnabled(False)
             cfoil_widget.combobox.setEnabled(False)
@@ -1334,19 +1315,19 @@ def main():
 
     def newproject():
         basefoilpanel.no1.showfoil.compute_initial_figure2(default.default_no1)
-        basefoilpanel.no1.setTitle("foil No.1 - {foilname}".format(foilname = os.path.basename(basefoilpanel.no1.showfoil.filename)))
+        basefoilpanel.no1.setTitle("Foil No.1 - {foilname}".format(foilname = os.path.basename(basefoilpanel.no1.showfoil.filename)))
         basefoilpanel.no2.showfoil.compute_initial_figure2(default.default_no2)
-        basefoilpanel.no2.setTitle("foil No.2 - {foilname}".format(foilname = os.path.basename(basefoilpanel.no2.showfoil.filename)))
+        basefoilpanel.no2.setTitle("Foil No.2 - {foilname}".format(foilname = os.path.basename(basefoilpanel.no2.showfoil.filename)))
         basefoilpanel.no3.showfoil.compute_initial_figure2(default.default_no3)
-        basefoilpanel.no3.setTitle("foil No.3 - {foilname}".format(foilname = os.path.basename(basefoilpanel.no3.showfoil.filename)))
+        basefoilpanel.no3.setTitle("Foil No.3 - {foilname}".format(foilname = os.path.basename(basefoilpanel.no3.showfoil.filename)))
         basefoilpanel.no4.showfoil.compute_initial_figure2(default.default_no4)
-        basefoilpanel.no4.setTitle("foil No.4 - {foilname}".format(foilname = os.path.basename(basefoilpanel.no4.showfoil.filename)))
+        basefoilpanel.no4.setTitle("Foil No.4 - {foilname}".format(foilname = os.path.basename(basefoilpanel.no4.showfoil.filename)))
 
         ga.save_top = [0]
         ga.save_topValue = [0]
 
-        titleexeprogress.exebutton.setText("start")
-        titleexeprogress.stopbutton.setText("stop")
+        titleexeprogress.exebutton.setText("START")
+        titleexeprogress.stopbutton.setText("STOP")
 
         input_widget.inputwidget.inputCL.setText('1.3')
         input_widget.inputwidget.inputRe.setText('500000')
@@ -1365,7 +1346,7 @@ def main():
         cfoil_widget.CLlabel.setText("揚力係数CL : {CL}    抗力係数Cd(*10000) : {Cd}    揚抗比CL/Cd : {CLCd}    モーメント係数Cm : {Cm}     翼厚 : {thn:4}".format(CL = 0, Cd = "NaN", CLCd = "NaN",Cm = "Nan", thn = "NaN"))
 
     def rollback():
-        ret = QtGui.QMessageBox.question(None,"revert", "世代:{generation}を最も優れた翼型として登録します\n(評価関数が最大値をとった翼型は登録され、毎世代投入されます)\nよろしいですか？".format(generation = int(cfoil_widget.combobox.currentText())),
+        ret = QtGui.QMessageBox.question(None,"Elite REVERT", "世代:{generation}を最も優れた翼型として登録します\n(評価関数が最大値をとった翼型は登録され、毎世代投入されます)\nよろしいですか？".format(generation = int(cfoil_widget.combobox.currentText())),
                         QtGui.QMessageBox.Yes | QtGui.QMessageBox.No,QtGui.QMessageBox.Yes)
         if ret == QtGui.QMessageBox.Yes:
             rollbacgeneration = int(cfoil_widget.combobox.currentText())
@@ -1497,7 +1478,7 @@ def main():
     def open_file():
         global projectname
         #CSVリストの作成
-        projectname= QtGui.QFileDialog.getOpenFileName(parent = None,caption = "open project" ,directory=os.path.join(default.foildirectory), filter="XGAG File(*.gag)")
+        projectname= QtGui.QFileDialog.getOpenFileName(parent = None,caption = "OPEN Project" ,directory=os.path.join(default.foildirectory), filter="XGAG File(*.gag)")
         if projectname:
             fid = open(projectname)
             csv_openfile = csv.reader(fid,delimiter = ',')
@@ -1735,8 +1716,8 @@ def main():
 
             #その他諸々の設定
             ga.run = 1
-            titleexeprogress.stopbutton.setText("resume")
-            titleexeprogress.exebutton.setText("restart")
+            titleexeprogress.stopbutton.setText("RESUME")
+            titleexeprogress.exebutton.setText("RESTART")
             titleexeprogress.stopbutton.setEnabled(True)
             titleexeprogress.progressbar.reset()
             cfoil_widget.rollbackbutton.setEnabled(True)
@@ -1751,14 +1732,14 @@ def main():
 
     def save_as():
         global projectname
-        projectname = QtGui.QFileDialog.getSaveFileName(None, caption = "project name",directory = os.path.join(default.foildirectory),filter = "XGAG File(*.gag)")
+        projectname = QtGui.QFileDialog.getSaveFileName(None, caption = "Project name",directory = os.path.join(default.foildirectory),filter = "XGAG File(*.gag)")
         if projectname:
             save_file()
 
     def save():
         print(ga.generation)
         if ga.generation == 0 :
-            QtGui.QMessageBox.warning(None,"project save ERROR","進捗がありません。解析を実行してからセーブして下さい\n")
+            QtGui.QMessageBox.warning(None,"Project Save ERROR","進捗がありません。解析を実行してからセーブして下さい\n")
         elif "projectname" not in globals():
             save_as()
         else:
@@ -1841,12 +1822,6 @@ def main():
     main_window.connect(file_save,QtCore.SIGNAL('triggered()'),save)
     main_window.connect(file_saveas,QtCore.SIGNAL('triggered()'),save_as)
     main_window.connect(file_open,QtCore.SIGNAL('triggered()'),open_file)
-
-    #ステータスバーにprogressを表示
-    statusbar = QtGui.QStatusBar(main_window)
-    statusbar.addWidget(titleexeprogress.progressbar)
-
-    main_window.setStatusBar(statusbar)
 
     optionmenu = menubar.addMenu("Option")
     defaultfoils = optionmenu.addAction("&Default Directory && Foils")
