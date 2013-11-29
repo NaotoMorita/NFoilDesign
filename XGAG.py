@@ -887,6 +887,8 @@ class GeneteticAlgolithm():
 
 
 
+
+
         #-----ソート
         self.sortedlist = numpy.zeros((n_sample,4))
         ind = numpy.argsort(self.Fcon)
@@ -1021,10 +1023,10 @@ class Export_Filt_Foil():
         startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
 
         ps = subprocess.Popen(['xfoil.exe'],stdin=subprocess.PIPE,stdout=None,stderr=None,startupinfo=startupinfo)
-        pipe = bytes("\nplop\n g\n\n load {load} \n oper\n alfa{alpha}\n \n mdes \n aq {alpha} \n filt \n exec\n\n pcop \n save export_filt.foil \n Y \n quit\n".format(load=foil,alpha=alpha),"ascii")
+        pipe = bytes("\nplop\n g\n\n load {load} \n oper\n alfa{alpha}\n \n mdes \n aq {alpha} \n filt \n exec\n\n pcop \n save export.foil \n Y \n quit\n".format(load=foil,alpha=alpha),"ascii")
         res = ps.communicate(pipe)
 
-        foil = numpy.loadtxt("export_filt.foil",skiprows=1)
+        foil = numpy.loadtxt("export.foil",skiprows=1)
         self.export_x = foil[:,0]
         self.export_y = foil[:,1]
 
@@ -1034,6 +1036,7 @@ class Export_Filt_Foil():
         for i in range(numpy.shape(self.export_x)[0]):
             fid.write(" {x_ele}  {y_ele} \n".format(x_ele = self.export_x[i], y_ele = self.export_y[i]))
         fid.close()
+        os.remove("export.foil")
 
     def dialog(self,cfoil_widget,input_widget,default):
         ret = QtGui.QMessageBox.question(None,"export foil",
@@ -1328,8 +1331,8 @@ def main():
             exeGA()
 
     def stopGA():
+        print(ga.run)
         if ga.run == 0 or ga.run == 2 :
-
             ga.run = 1
             titleexeprogress.stopbutton.setText("resume")
             cfoil_widget.rollbackbutton.setEnabled(True)
@@ -1342,8 +1345,13 @@ def main():
             cfoil_widget.rollbackbutton.setEnabled(False)
             cfoil_widget.outputbutton.setEnabled(False)
             cfoil_widget.combobox.setEnabled(False)
-
             exeGA()
+
+        else:
+            QtGui.QMessageBox.warning(None,"calculation stoped", "世代が上限に達しています",
+                        QtGui.QMessageBox.Ok, QtGui.QMessageBox.Ok)
+
+
 
     def quitGA():
         ga.run = 1
@@ -1418,6 +1426,8 @@ def main():
         writecsv.writerow(["---"])
         writecsv.writerow(ga.save_top)
         writecsv.writerow([str(ga.save_topValue)])
+        writecsv.writerow([str(int(titleexeprogress.inputgeneration.text()))])
+
         writecsv.writerow(["---"])
 
         for history_Fcon in numpy.ndarray.tolist(ga.history_Fcon):
@@ -1444,12 +1454,12 @@ def main():
             writecsv.writerow([str(history_thn)])
         writecsv.writerow(["---"])
 
-        for history_topValue in ga.history_topValue:
-            writecsv.writerow([str(history_topValue)])
+        for i in range(ga.generation-1):
+            writecsv.writerow([str(ga.history_topValue[i])])
         writecsv.writerow(["---"])
 
-        for history_top in ga.history_top:
-            writecsv.writerow(history_top)
+        for i in range(ga.generation-1):
+            writecsv.writerow(ga.history_top[i])
         writecsv.writerow(["---"])
 
         writecsv.writerow([basefoilpanel.no1.showfoil.filename])
@@ -1553,6 +1563,8 @@ def main():
             ga.save_top =csv_allfile[read_i]
             read_i += 1
             ga.save_topValue = float(csv_allfile[read_i][0])
+            read_i += 1
+            titleexeprogress.inputgeneration.setText(csv_allfile[read_i][0])
             read_i += 1
 
 
