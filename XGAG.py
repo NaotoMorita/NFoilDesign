@@ -262,7 +262,7 @@ class CalclatedFoilWidget(QtGui.QWidget):
         self.rollbackbutton.setFont(font)
         self.rollbackbutton.setFixedWidth(100)
         self.combobox = QtGui.QComboBox()
-        self.combobox.setFixedWidth(40)
+        self.combobox.setFixedWidth(60)
 
         datapanel_layout = QtGui.QHBoxLayout()
         datapanel_layout.addWidget(self.CLlabel)
@@ -367,12 +367,12 @@ class Inputtarget_Setbutton_Widget(QtGui.QWidget):
         self.inputevafunc.P1.setText("1")
         self.inputevafunc.P1.setFixedWidth(30)
         self.inputevafunc.text2 = QtGui.QLabel(parent = self.inputevafunc)
-        self.inputevafunc.text2.setText("* 1/Cd  -")
+        self.inputevafunc.text2.setText("* 1/Cd  +")
         self.inputevafunc.P2 = QtGui.QLineEdit(parent = self.inputevafunc)
         self.inputevafunc.P2.setText("0")
         self.inputevafunc.P2.setFixedWidth(30)
         self.inputevafunc.text3 = QtGui.QLabel(parent = self.inputevafunc)
-        self.inputevafunc.text3.setText("* 1/Cm ) * Exp{ -")
+        self.inputevafunc.text3.setText("* Exp(Cm) ) * Exp{ -")
         self.inputevafunc.P3 = QtGui.QLineEdit(parent = self.inputevafunc)
         self.inputevafunc.P3.setText("5")
         self.inputevafunc.P3.setFixedWidth(30)
@@ -831,9 +831,9 @@ class GeneteticAlgolithm():
         self.Fcon = [0]*n_sample
         for n in range(n_sample):
             if self.thn_GA[n] >= thn:
-                self.Fcon[n] =(self.pfCd * 1 / self.Cd_GA[n] - self.pfCm * 1 / self.Cm_GA[n]) * numpy.exp(-self.pfthn * abs(self.thn_GA[n] - thn) - self.pfCL * abs(self.CL_GA[n] - CL))
+                self.Fcon[n] =(self.pfCd * 1 / self.Cd_GA[n] + self.pfCm * numpy.exp(self.Cm_GA[n])) * numpy.exp(-self.pfthn * abs(self.thn_GA[n] - thn) - self.pfCL * abs(self.CL_GA[n] - CL))
             else:
-                self.Fcon[n] =(self.pfCd * 1 / self.Cd_GA[n] - self.pfCm * 1 / self.Cm_GA[n]) * numpy.exp(-self.pfthn * abs(self.thn_GA[n] - thn) - self.pfCL * abs(self.CL_GA[n] - CL))
+                self.Fcon[n] =(self.pfCd * 1 / self.Cd_GA[n] + self.pfCm * numpy.exp(self.Cm_GA[n])) * numpy.exp(-self.pfthn * abs(self.thn_GA[n] - thn) - self.pfCL * abs(self.CL_GA[n] - CL))
         self.maxFconNo = self.Fcon.index(max(self.Fcon))
         self.CL = self.CL_GA[self.maxFconNo]
         self.Cd = self.Cd_GA[self.maxFconNo]
@@ -1234,61 +1234,73 @@ class Foils_Default_Change(QtGui.QWidget):
 def main():
 
     def exeGA():
-        titleexeprogress.stopbutton.setDisabled(0)
-        input_widget.inputwidget.inputalpha.setDisabled(1)
-        max_generation = int(titleexeprogress.inputgeneration.text())
-
-        if ga.generation < max_generation:
-            while ga.generation < max_generation:
-                qApp.processEvents()
-                titleexeprogress.savedonelabel.setText("")
-                if ga.run !=0 and ga.run !=2 :
-                    break
-                ga.generation += 1
-
-
-                if ga.generation == 1:
-                    titleexeprogress.generation.setText("  世代 : 0 / ")
-                    n_sample = int(titleexeprogress.inputindno.text())
-                    titleexeprogress.inputindno.setDisabled(1)
-
-                    ga.getFoilChord(basefoilpanel)
-                    ga.defineFoil()
-                    ga.default_gene()
-                    ga.gene2coeficient()
-                    ga.coeficient2foil()
-                    ga.run = 2
-                    ga.exeXFoil(qApp,titleexeprogress,input_widget)
-
-                    if ga.run == 0 or ga.run == 2:
-                        ga.evaluete_cross(input_widget,ga.generation)
-                        cfoil_widget.replot(ga,ga.maxFconNo)
-                        dataplotwidget.update_dataplot(ga,ga.generation)
-                else:
-                    titleexeprogress.generation.setText("世代 : {fgene} / ".format(fgene = ga.generation-1))
-                    ga.gene2coeficient()
-                    ga.coeficient2foil()
-                    ga.run = 2
-                    ga.exeXFoil(qApp,titleexeprogress,input_widget)
-                    if ga.run == 0 or ga.run == 2:
-                        ga.evaluete_cross(input_widget,ga.generation)
-                        cfoil_widget.replot(ga,ga.maxFconNo)
-                        dataplotwidget.update_dataplot(ga,ga.generation)
-                if ga.run ==0 or ga.run ==2 :
-                    cfoil_widget.combobox.clear()
-                    for combo_n in range(ga.generation,0,-1):
-                        cfoil_widget.combobox.addItem(str(combo_n))
-                max_generation = int(titleexeprogress.inputgeneration.text())
-                if ga.generation == max_generation:
-                    titleexeprogress.generation.setText("世代 : {fgene} / ".format(fgene = ga.generation))
-                    titleexeprogress.stopbutton.setText("RESUME")
-                    ga.run = 1
-                    ga.generation += 1
-                    cfoil_widget.rollbackbutton.setEnabled(True)
-                    cfoil_widget.outputbutton.setEnabled(True)
-                    cfoil_widget.combobox.setEnabled(True)
+        if not basefoilpanel.no1.showfoil.filename or not basefoilpanel.no2.showfoil.filename or not basefoilpanel.no3.showfoil.filename or not basefoilpanel.no4.showfoil.filename :
+            QtGui.QMessageBox.warning(None,"no airfoil", "Base AirFoil を選択して下さい\nデフォルト設定を行っていないのであれば、\nOptionタブより設定して下さい",
+                        QtGui.QMessageBox.Ok, QtGui.QMessageBox.Ok)
+            titleexeprogress.exebutton.setText("start")
         else:
-            ga.generation += 1
+            titleexeprogress.stopbutton.setDisabled(0)
+            input_widget.inputwidget.inputalpha.setDisabled(1)
+            max_generation = int(titleexeprogress.inputgeneration.text())
+            global n_sample
+            n_sample = int(titleexeprogress.inputindno.text())
+
+            if ga.generation < max_generation:
+                while ga.generation < max_generation:
+                    qApp.processEvents()
+                    titleexeprogress.savedonelabel.setText("")
+                    if ga.run !=0 and ga.run !=2 :
+                        break
+                    ga.generation += 1
+
+
+                    if ga.generation == 1:
+                        titleexeprogress.generation.setText("  世代 : 0 / ")
+                        n_sample = int(titleexeprogress.inputindno.text())
+                        titleexeprogress.inputindno.setDisabled(1)
+
+                        ga.getFoilChord(basefoilpanel)
+                        ga.defineFoil()
+                        ga.default_gene()
+                        ga.gene2coeficient()
+                        ga.coeficient2foil()
+                        ga.run = 2
+                        ga.exeXFoil(qApp,titleexeprogress,input_widget)
+
+                        if ga.run == 0 or ga.run == 2:
+                            ga.evaluete_cross(input_widget,ga.generation)
+                            if numpy.min(ga.Fcon) < 0:
+                                QtGui.QMessageBox.warning(None,"Fcon error", "評価関数の値が負になっています。評価関数の係数を調節して下さい",
+                                            QtGui.QMessageBox.Ok, QtGui.QMessageBox.Ok)
+                                stopGA()
+                            else:
+                                cfoil_widget.replot(ga,ga.maxFconNo)
+                                dataplotwidget.update_dataplot(ga,ga.generation)
+                    else:
+                        titleexeprogress.generation.setText("世代 : {fgene} / ".format(fgene = ga.generation-1))
+                        ga.gene2coeficient()
+                        ga.coeficient2foil()
+                        ga.run = 2
+                        ga.exeXFoil(qApp,titleexeprogress,input_widget)
+                        if ga.run == 0 or ga.run == 2:
+                            ga.evaluete_cross(input_widget,ga.generation)
+                            cfoil_widget.replot(ga,ga.maxFconNo)
+                            dataplotwidget.update_dataplot(ga,ga.generation)
+                    if ga.run ==0 or ga.run ==2 :
+                        cfoil_widget.combobox.clear()
+                        for combo_n in range(ga.generation,0,-1):
+                            cfoil_widget.combobox.addItem(str(combo_n))
+                    max_generation = int(titleexeprogress.inputgeneration.text())
+                    if ga.generation == max_generation:
+                        titleexeprogress.generation.setText("世代 : {fgene} / ".format(fgene = ga.generation))
+                        titleexeprogress.stopbutton.setText("RESUME")
+                        ga.run = 1
+                        ga.generation += 1
+                        cfoil_widget.rollbackbutton.setEnabled(True)
+                        cfoil_widget.outputbutton.setEnabled(True)
+                        cfoil_widget.combobox.setEnabled(True)
+            else:
+                ga.generation += 1
 
 
 
@@ -1354,6 +1366,7 @@ def main():
         titleexeprogress.exebutton.setText("start")
         titleexeprogress.stopbutton.setText("stop")
 
+        input_widget.inputwidget.inputalpha.setText('4')
         input_widget.inputwidget.inputCL.setText('1.3')
         input_widget.inputwidget.inputRe.setText('500000')
         input_widget.inputwidget.inputthn.setText('11')
@@ -1514,7 +1527,7 @@ def main():
     def open_file():
         #CSVリストの作成
         global projectname
-        projectname= QtGui.QFileDialog.getOpenFileName(parent = None,caption = "open project" ,directory=os.path.join(default.foildirectory), filter="XGAG csv File(*.csv)")
+        projectname= QtGui.QFileDialog.getOpenFileName(parent = None,caption = "open project" ,directory=os.path.join(default.foildirectory), filter="XGAG File(*.gag)")
         if projectname:
             fid = open(projectname)
             csv_openfile = csv.reader(fid,delimiter = ',')
@@ -1643,18 +1656,22 @@ def main():
 
             basefoilpanel.no1.showfoil.filename = csv_allfile[read_i][0]
             basefoilpanel.no1.showfoil.update_figure2()
+            basefoilpanel.no1.setTitle("foil No.1 - {foilname}".format(foilname = os.path.basename(basefoilpanel.no1.showfoil.filename)))
             read_i += 1
 
             basefoilpanel.no2.showfoil.filename = csv_allfile[read_i][0]
             basefoilpanel.no2.showfoil.update_figure2()
+            basefoilpanel.no2.setTitle("foil No.2 - {foilname}".format(foilname = os.path.basename(basefoilpanel.no2.showfoil.filename)))
             read_i += 1
 
             basefoilpanel.no3.showfoil.filename = csv_allfile[read_i][0]
             basefoilpanel.no3.showfoil.update_figure2()
+            basefoilpanel.no3.setTitle("foil No.3 - {foilname}".format(foilname = os.path.basename(basefoilpanel.no3.showfoil.filename)))
             read_i += 1
 
             basefoilpanel.no4.showfoil.filename = csv_allfile[read_i][0]
             basefoilpanel.no4.showfoil.update_figure2()
+            basefoilpanel.no4.setTitle("foil No.4 - {foilname}".format(foilname = os.path.basename(basefoilpanel.no4.showfoil.filename)))
             read_i += 1
 
             #リストより各設計パラメタ、評価関数 generation 抽出
@@ -1764,11 +1781,17 @@ def main():
             titleexeprogress.savedonelabel.setText("ロードが完了しました")
 
     def about_XGAG():
-        pass
+        QtGui.QMessageBox.about(None,"About XGAG","".join(["<h2>XGAG 1.0</h2>",
+                                               "<p>Copyright &copy 2013 Naoto Morita",
+                                               "<br>Copyright &copy 2000 Mark Drela, Harold Youngren</br></p>",
+                                               "<p>Special thanks to : Masanao Matsunaga, Satoshi Utada, Daiki Adach, Koich Tsumori, bambino_del_uccello,"
+                                               "   Kenji Takei, Kosuke Okabe, Ryosuke Ikeda, Tetsuya Okano, Tomonari Sato, Masahiro Ota, meka, Yuji Fukami"
+                                               "<p>XGAG is without any warranty. This program has been developed excusively for the design of airfoil. Any other usage is strongly disapproved.</p>"
+                                               "<p>XGAG distributed under the GNU General Public Licence</p>"]))
 
     def save_as():
         global projectname
-        projectname = QtGui.QFileDialog.getSaveFileName(None, caption = "project name",directory = os.path.join(default.foildirectory),filter = "XGAG csv File(*.csv)")
+        projectname = QtGui.QFileDialog.getSaveFileName(None, caption = "project name",directory = os.path.join(default.foildirectory),filter = "XGAG File(*.gag)")
         if not projectname:
             pass
         elif ga.generation <= 1:
@@ -1779,7 +1802,7 @@ def main():
     def save():
         global projectname
         if ga.generation <= 1 :
-            projectname = QtGui.QFileDialog.getSaveFileName(None, caption = "project name",directory = os.path.join(default.foildirectory),filter = "XGAG csv File(*.csv)")
+            projectname = QtGui.QFileDialog.getSaveFileName(None, caption = "project name",directory = os.path.join(default.foildirectory),filter = "XGAG File(*.gag)")
             main_window.setWindowTitle("XGAG -{projectname}".format(projectname = os.path.basename(projectname)))
         elif not projectname:
             save_as()
@@ -1893,10 +1916,11 @@ def main():
 
 
     aboutmenu = menubar.addMenu("About")
-    about_XGAG = aboutmenu.addAction("&About XGAG")
+    about_XGAGmenu = aboutmenu.addAction("&About XGAG")
     about_qt = aboutmenu.addAction("&About Qt")
 
     main_window.connect(about_qt,QtCore.SIGNAL('triggered()'),qApp.aboutQt)
+    main_window.connect(about_XGAGmenu,QtCore.SIGNAL('triggered()'),about_XGAG)
 
 
 
