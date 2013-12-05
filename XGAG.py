@@ -1237,6 +1237,10 @@ class Foils_Default_Change(QtGui.QWidget):
 def main():
 
     def exeGA():
+        try:
+            os.remove("a0_pwrt.dat")
+        except:
+            pass
         if not basefoilpanel.no1.showfoil.filename or not basefoilpanel.no2.showfoil.filename or not basefoilpanel.no3.showfoil.filename or not basefoilpanel.no4.showfoil.filename :
             QtGui.QMessageBox.warning(None,"no airfoil", "Base AirFoil を選択して下さい\nデフォルト設定を行っていないのであれば、\nOptionタブより設定して下さい",
                         QtGui.QMessageBox.Ok, QtGui.QMessageBox.Ok)
@@ -1358,6 +1362,11 @@ def main():
 
 
     def newproject():
+        #a0_pwrt.datを削除
+        try:
+            os.remove("a0_pwrt.dat")
+        except:
+            pass
         basefoilpanel.no1.showfoil.compute_initial_figure2(default.default_no1)
         basefoilpanel.no1.setTitle("foil No.1 - {foilname}".format(foilname = os.path.basename(basefoilpanel.no1.showfoil.filename)))
         basefoilpanel.no2.showfoil.compute_initial_figure2(default.default_no2)
@@ -1794,9 +1803,9 @@ def main():
 
     def about_XGAG():
         QtGui.QMessageBox.about(None,"About XGAG","".join(["<h2>XGAG 1.0</h2>",
-                                               "<p>Copyright &copy 2013 Naoto Morita",
-                                               "<br>Copyright &copy 2000 Mark Drela, Harold Youngren</br></p>",
-                                               "<p>Special thanks to : Masanao Matsunaga, Satoshi Utada, Daiki Adach, Koich Tsumori, bambino_del_uccello,"
+                                               "<p>Copyright (C) 2013 Naoto Morita",
+                                               "<br>Copyright (C) 2000 Mark Drela, Harold Youngren</br></p>",
+                                               "<p>Special thanks to : Masanao Matsunaga, Satoshi Utada, Daiki Adachi, Koich Tsumori, bambino_del_uccello,"
                                                "   Kenji Takei, Kosuke Okabe, Ryosuke Ikeda, Tetsuya Okano, Tomonari Sato, Masahiro Ota, meka, Yuji Fukami"
                                                "<p>XGAG is without any warranty. This program has been developed excusively for the design of airfoil. Any other usage is strongly disapproved.</p>"
                                                "<p>XGAG distributed under the GNU General Public Licence</p>"]))
@@ -1935,7 +1944,11 @@ def main():
     main_window.connect(about_XGAGmenu,QtCore.SIGNAL('triggered()'),about_XGAG)
 
 
-
+    #a0_pwrt.datを削除
+    try:
+        os.remove("a0_pwrt.dat")
+    except:
+        pass
 
 
 
