@@ -648,7 +648,7 @@ class GeneteticAlgolithm():
             startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
 
             ps = subprocess.Popen(['xfoil.exe'],stdin=subprocess.PIPE,stdout=None,stderr=None,startupinfo=startupinfo)
-            pipe = bytes("\nplop\n g\n\n norm\n load {load} \n pane\n GDES\n DERO\n eXec\n \n ppar \n n 256 \n \n \n save foil.foil\n y \n \n quit \n" .format(load=foil),"ascii")
+            pipe = bytes("\nplop\n g\n\n norm\n load {load} \n pane\n GDES\n DERO\n eXec\n \n ppar \n n 300 \n \n \n save foil.foil\n y \n \n quit \n" .format(load=foil),"ascii")
             res = ps.communicate(pipe)
 
             foil = numpy.loadtxt("foil.foil",skiprows=1)
@@ -959,7 +959,6 @@ class GeneteticAlgolithm():
                 c_mat[3,m] = m + 1.0
             camber_coeficient =numpy.linalg.solve(c_mat,cu_vector)
             self.top_addcamber = camber_coeficient[0] * self.x + camber_coeficient[1] * self.x**2 + camber_coeficient[2] * self.x**3 + camber_coeficient[3] * self.x ** 4
-            print(self.top_addcamber)
             self.top_x = self.x
             self.top_y =(self.y[0,:] * self.top_coefficient[0] + self.y[1,:] * self.top_coefficient[1] + self.y[2,:] * self.top_coefficient[2] + self.y[3,:] * self.top_coefficient[3] + self.top_addcamber) * self.top_coefficient[7]
 
@@ -1050,7 +1049,6 @@ class GeneteticAlgolithm():
                 c_mat[3,m] = m + 1.0
             camber_coeficient =numpy.linalg.solve(c_mat,cu_vector)
             self.top_addcamber = camber_coeficient[0] * self.x + camber_coeficient[1] * self.x**2 + camber_coeficient[2] * self.x**3 + camber_coeficient[3] * self.x ** 4
-            print(self.top_addcamber)
             self.top_x = self.x
             self.top_y =(self.y[0,:] * self.top_coefficient[0] + self.y[1,:] * self.top_coefficient[1] + self.y[2,:] * self.top_coefficient[2] + self.y[3,:] * self.top_coefficient[3] + self.top_addcamber) * self.top_coefficient[7]
 
@@ -1178,13 +1176,6 @@ class GeneteticAlgolithm():
 
                 self.genegray[2*n+1][i] = str(cross2b+cross1a).zfill(12)
 
-        #グレイコードからバイナリへの変換
-        for n in range (n_sample):
-            for i in range(8):
-                self.gene2[n][i] = binstr.b_gray_to_bin(self.genegray[n][i])
-
-        self.hash_GA = [0] * n_sample
-
         #-----突然変異操作
         for n in range(n_sample):
             mutation = random.random()
@@ -1192,9 +1183,18 @@ class GeneteticAlgolithm():
                 i = random.randint(0,7)
 
                 rand_i = random.randint(0,10)
-                temp = self.gene2[n][i][0:rand_i]
+                temp = self.genegray[n][i][0:rand_i]
                 while len(temp) < 12:
                     temp = temp + str(random.randint(0,1))
+
+        #グレイコードからバイナリへの変換
+        for n in range (n_sample):
+            for i in range(8):
+                self.gene2[n][i] = binstr.b_gray_to_bin(self.genegray[n][i])
+
+        self.hash_GA = [0] * n_sample
+
+
 
 
         self.gene2[n_sample-1] = copy.deepcopy(self.save_top)
@@ -1572,7 +1572,6 @@ def main():
             exeGA()
 
     def stopGA():
-        print(ga.run)
         if ga.run == 0 or ga.run == 2 :
             ga.run = 1
             titleexeprogress.stopbutton.setText("resume")
