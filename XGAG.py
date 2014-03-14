@@ -134,8 +134,8 @@ class DataPlot(Matplot):
         self.axes.set_aspect("auto")
 
 
-    def update_figure(self,xlim = None, ylim = None, xlabel = "xlabel", ylabel = "ylabel"):
-        self.axes.plot(self.datax, self.datay,marker='o',linewidth=0)
+    def update_figure(self,xlim = None, ylim = None, xlabel = "xlabel", ylabel = "ylabel",line_width = 0):
+        self.axes.plot(self.datax, self.datay,marker='o',linewidth=line_width)
         self.axes.set_aspect("auto")
         if xlim != None:
             self.axes.set_xlim(xlim)
@@ -173,7 +173,7 @@ class BaseFoilWidget(QtGui.QWidget):
         self.no1.setFont(font)
         self.no1.openbutton = QtGui.QPushButton("open foil No.1")
         self.no1.openbutton.setFont(font)
-        self.no1.coe_label = QtGui.QLabel("線形和係数 : {coe}".format(coe = "--"))
+        self.no1.coe_label = QtGui.QLabel("混合係数 : {coe}".format(coe = "--"))
         self.no1.layout = QtGui.QVBoxLayout()
         self.no1.layout.addWidget(self.no1.coe_label)
         self.no1.layout.addWidget(self.no1.showfoil)
@@ -186,7 +186,7 @@ class BaseFoilWidget(QtGui.QWidget):
         self.no2.showfoil.compute_initial_figure(default.default_no2)
         self.no2.setTitle("foil No.2 - {foilname}".format(foilname = os.path.basename(self.no2.showfoil.filename)))
         self.no2.openbutton = QtGui.QPushButton("open foil No.2")
-        self.no2.coe_label = QtGui.QLabel("線形和係数 : {coe}".format(coe = "--"))
+        self.no2.coe_label = QtGui.QLabel("混合係数 : {coe}".format(coe = "--"))
         self.no2.layout = QtGui.QVBoxLayout()
         self.no2.layout.addWidget(self.no2.coe_label)
         self.no2.layout.addWidget(self.no2.showfoil)
@@ -199,7 +199,7 @@ class BaseFoilWidget(QtGui.QWidget):
         self.no3.showfoil.compute_initial_figure(default.default_no3)
         self.no3.setTitle("foil No.3 - {foilname}".format(foilname = os.path.basename(self.no3.showfoil.filename)))
         self.no3.openbutton = QtGui.QPushButton("open foil No.3")
-        self.no3.coe_label = QtGui.QLabel("線形和係数 : {coe}".format(coe = "--"))
+        self.no3.coe_label = QtGui.QLabel("混合係数 : {coe}".format(coe = "--"))
         self.no3.layout = QtGui.QVBoxLayout()
         self.no3.layout.addWidget(self.no3.coe_label)
         self.no3.layout.addWidget(self.no3.showfoil)
@@ -212,7 +212,7 @@ class BaseFoilWidget(QtGui.QWidget):
         self.no4.showfoil.compute_initial_figure(default.default_no4)
         self.no4.setTitle("foil No.4 - {foilname}".format(foilname = os.path.basename(self.no4.showfoil.filename)))
         self.no4.openbutton = QtGui.QPushButton("open Foil No.4")
-        self.no4.coe_label = QtGui.QLabel("線形和係数 : {coe}".format(coe = "--"))
+        self.no4.coe_label = QtGui.QLabel("混合係数 : {coe}".format(coe = "--"))
         self.no4.layout = QtGui.QVBoxLayout()
         self.no4.layout.addWidget(self.no4.coe_label)
         self.no4.layout.addWidget(self.no4.showfoil)
@@ -520,14 +520,13 @@ class DataPlotWidget(QtGui.QWidget):
         self.evo_Fconplot.datax = ga.history_generation
 
         self.evo_Fconplot.datay = ga.history_Fcon
-        self.evo_Fconplot.update_figure(ylabel = "Val of EF",xlabel = "Generation")
+        self.evo_Fconplot.update_figure(ylabel = "Val of EF",xlabel = "Generation",line_width = 1)
         self.evo_CLplot.datax = ga.history_generation
         self.evo_CLplot.datay = ga.history_CL
-        self.evo_CLplot.update_figure(ylabel = "CL",xlabel = "Generation")
+        self.evo_CLplot.update_figure(ylabel = "CL",xlabel = "Generation",line_width = 1)
         self.evo_thnplot.datax = ga.history_generation
         self.evo_thnplot.datay = ga.history_thn * 100
-
-        self.evo_thnplot.update_figure(ylabel = "thickness(%)",xlabel = "Generation")
+        self.evo_thnplot.update_figure(ylabel = "thickness(%)",xlabel = "Generation",line_width = 1)
 
 
 
@@ -872,7 +871,7 @@ class GeneteticAlgolithm():
                 self.Cm_GA[n] = -100
 
 
-    def evaluete_cross(self,evafunc,generation):
+    def evaluete_cross(self,evafunc,generation,savedonelabel):
         self.pfCd = float(evafunc.inputevafunc.P1.text())
         self.pfCm = float(evafunc.inputevafunc.P2.text())
         self.pfCL =float(evafunc.inputevafunc.P3.text())
@@ -930,8 +929,89 @@ class GeneteticAlgolithm():
 
 
         #-----最大値の保存
+        #保存個体の再計算
+        self.save_topValue = 0.0
+        if generation != 1:
+            for i in range(8):
+                self.top_coefficient_ratio[i] = float(int(self.save_top[i],2) / 4095)
+
+            #ここから　上のGenetic Algolithm内と必ず一致させること
+            self.top_coefficient[0] = coe_range[0]*self.top_coefficient_ratio[0]+coe_start[0]
+            self.top_coefficient[1] = coe_range[1]*self.top_coefficient_ratio[1]+coe_start[1]
+            self.top_coefficient[2] = coe_range[2]*self.top_coefficient_ratio[2]+coe_start[2]
+            self.top_coefficient[3] = coe_range[3]*self.top_coefficient_ratio[3]+coe_start[3]
+            self.top_coefficient[4] = coe_range[4]*self.top_coefficient_ratio[4]+coe_start[4]  #zc
+            self.top_coefficient[5] = coe_range[5]*self.top_coefficient_ratio[5]+coe_start[5]  #xc
+            self.top_coefficient[6] = coe_range[6]*self.top_coefficient_ratio[6]+coe_start[6]  #alphaTE
+            self.top_coefficient[7] = coe_range[7]*self.top_coefficient_ratio[7]+coe_start[7]  #Amplifying coefficient
+            #ここまで
+
+            xc = self.top_coefficient[5]
+            zc = self.top_coefficient[4]
+            alphaTE = self.top_coefficient[6]
+
+            c_mat = numpy.arange(0, 4 * 4).reshape(4, 4) + numpy.identity(4)
+            cu_vector = numpy.array([[zc],[0.0],[0.0],[numpy.tan(alphaTE * numpy.pi/180)]])
+            for m in range(4):
+                c_mat[0,m] = xc**(m+1)
+                c_mat[1,m] = xc**(m) * (m+1)
+                c_mat[2,m] = 1.0
+                c_mat[3,m] = m + 1.0
+            camber_coeficient =numpy.linalg.solve(c_mat,cu_vector)
+            self.top_addcamber = camber_coeficient[0] * self.x + camber_coeficient[1] * self.x**2 + camber_coeficient[2] * self.x**3 + camber_coeficient[3] * self.x ** 4
+            print(self.top_addcamber)
+            self.top_x = self.x
+            self.top_y =(self.y[0,:] * self.top_coefficient[0] + self.y[1,:] * self.top_coefficient[1] + self.y[2,:] * self.top_coefficient[2] + self.y[3,:] * self.top_coefficient[3] + self.top_addcamber) * self.top_coefficient[7]
+
+            fid = open("top_foil.foil",'w')
+            fid.write("top_foil\n")
+            for i in range(numpy.shape(self.top_x)[0]):
+                fid.write(" {x_ele}  {y_ele} \n".format(x_ele = self.top_x[i], y_ele = self.top_y[i]))
+            fid.close()
+
+            try:
+                fname = "a0_pwrt.dat"
+                foil = "top_foil.foil"
+                startupinfo = subprocess.STARTUPINFO()
+                startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+
+
+
+                ps = subprocess.Popen(['xfoil.exe'],stdin=subprocess.PIPE,stdout=None,stderr=None,startupinfo=startupinfo)
+                pipe = bytes("\nplop\n g\n\n load {load} \n oper\n visc {Re} \n iter 100\n pacc\n {filename} \n \n alfa{alpha}\n \n quit\n".format(load=foil,Re=Re,filename=fname,alpha=alpha),"ascii")
+                res = ps.communicate(pipe)
+
+
+                #----read XFoil Poler
+                anlydata = numpy.loadtxt(fname,skiprows=12)
+
+                if len(anlydata.shape)==2:
+                    anlydata = analydata[-1,:]
+                os.remove(fname)
+
+                if numpy.isnan(float(sum(anlydata))):
+                    raise
+
+                self.top_CL = anlydata[1]
+                self.top_Cd = anlydata[2]
+                self.top_Cm = anlydata[4]
+
+            except:
+                self.top_CL = 0
+                self.top_Cd = 100
+                self.top_Cm = -100
+
+            if self.top_Cd <= Cd_target:
+                self.top_CL = 0
+                self.top_Cd = 100
+                self.top_Cm = -100
+
+            self.top_thn = numpy.interp(thnpos,self.top_x[101:198],self.top_y[101:198])-numpy.interp(thnpos,numpy.flipud(self.top_x[0:99]),numpy.flipud(self.top_y[0:99]))
+            self.save_topValue = (self.pfCd * 1 / self.top_Cd + self.pfCm * numpy.exp(self.top_Cm)) * numpy.exp(-self.pfthn * abs(self.top_thn - thn) - self.pfCL * abs(self.top_CL - CL))
+
+        savedonelabel.clear()
         if numpy.max(self.Fcon) > self.save_topValue:
-            self.save_topValue = 0.0
+            savedonelabel.setText("進化！")
             self.save_top = copy.deepcopy(self.gene2[self.maxFconNo])
 
         for n in range(n_sample):
@@ -940,84 +1020,85 @@ class GeneteticAlgolithm():
         if generation != 1:
             self.history_topValue.append([0])
             self.history_top.append([0])
-        #最大値の値の再計算（これで計算中の設定値の変更が可能になる。
+        #最大値の値の再計算(1回目）（これで計算中の設定値の変更が可能になる。
+        #保存個体の再計算
+        if generation == 1:
+            for i in range(8):
+                self.top_coefficient_ratio[i] = float(int(self.save_top[i],2) / 4095)
 
-        for i in range(8):
-            self.top_coefficient_ratio[i] = float(int(self.save_top[i],2) / 4095)
+            #ここから　上のGenetic Algolithm内と必ず一致させること
+            self.top_coefficient[0] = coe_range[0]*self.top_coefficient_ratio[0]+coe_start[0]
+            self.top_coefficient[1] = coe_range[1]*self.top_coefficient_ratio[1]+coe_start[1]
+            self.top_coefficient[2] = coe_range[2]*self.top_coefficient_ratio[2]+coe_start[2]
+            self.top_coefficient[3] = coe_range[3]*self.top_coefficient_ratio[3]+coe_start[3]
+            self.top_coefficient[4] = coe_range[4]*self.top_coefficient_ratio[4]+coe_start[4]  #zc
+            self.top_coefficient[5] = coe_range[5]*self.top_coefficient_ratio[5]+coe_start[5]  #xc
+            self.top_coefficient[6] = coe_range[6]*self.top_coefficient_ratio[6]+coe_start[6]  #alphaTE
+            self.top_coefficient[7] = coe_range[7]*self.top_coefficient_ratio[7]+coe_start[7]  #Amplifying coefficient
+            #ここまで
 
-        #ここから　上のGenetic Algolithm内と必ず一致させること
-        self.top_coefficient[0] = coe_range[0]*self.top_coefficient_ratio[0]+coe_start[0]
-        self.top_coefficient[1] = coe_range[1]*self.top_coefficient_ratio[1]+coe_start[1]
-        self.top_coefficient[2] = coe_range[2]*self.top_coefficient_ratio[2]+coe_start[2]
-        self.top_coefficient[3] = coe_range[3]*self.top_coefficient_ratio[3]+coe_start[3]
-        self.top_coefficient[4] = coe_range[4]*self.top_coefficient_ratio[4]+coe_start[4]  #zc
-        self.top_coefficient[5] = coe_range[5]*self.top_coefficient_ratio[5]+coe_start[5]  #xc
-        self.top_coefficient[6] = coe_range[6]*self.top_coefficient_ratio[6]+coe_start[6]  #alphaTE
-        self.top_coefficient[7] = coe_range[7]*self.top_coefficient_ratio[7]+coe_start[7]  #Amplifying coefficient
-        #ここまで
+            xc = self.top_coefficient[5]
+            zc = self.top_coefficient[4]
+            alphaTE = self.top_coefficient[6]
 
-        xc = self.top_coefficient[5]
-        zc = self.top_coefficient[4]
-        alphaTE = self.top_coefficient[6]
+            c_mat = numpy.arange(0, 4 * 4).reshape(4, 4) + numpy.identity(4)
+            cu_vector = numpy.array([[zc],[0.0],[0.0],[numpy.tan(alphaTE * numpy.pi/180)]])
+            for m in range(4):
+                c_mat[0,m] = xc**(m+1)
+                c_mat[1,m] = xc**(m) * (m+1)
+                c_mat[2,m] = 1.0
+                c_mat[3,m] = m + 1.0
+            camber_coeficient =numpy.linalg.solve(c_mat,cu_vector)
+            self.top_addcamber = camber_coeficient[0] * self.x + camber_coeficient[1] * self.x**2 + camber_coeficient[2] * self.x**3 + camber_coeficient[3] * self.x ** 4
+            print(self.top_addcamber)
+            self.top_x = self.x
+            self.top_y =(self.y[0,:] * self.top_coefficient[0] + self.y[1,:] * self.top_coefficient[1] + self.y[2,:] * self.top_coefficient[2] + self.y[3,:] * self.top_coefficient[3] + self.top_addcamber) * self.top_coefficient[7]
 
-        c_mat = numpy.arange(0, 4 * 4).reshape(4, 4) + numpy.identity(4)
-        cu_vector = numpy.array([[zc],[0.0],[0.0],[numpy.tan(alphaTE * numpy.pi/180)]])
-        for m in range(4):
-            c_mat[0,m] = xc**(m+1)
-            c_mat[1,m] = xc**(m) * (m+1)
-            c_mat[2,m] = 1.0
-            c_mat[3,m] = m + 1.0
-        camber_coeficient =numpy.linalg.solve(c_mat,cu_vector)
-        self.top_addcamber = camber_coeficient[0] * self.x + camber_coeficient[1] * self.x**2 + camber_coeficient[2] * self.x**3 + camber_coeficient[3] * self.x ** 4
-        print(self.top_addcamber)
-        self.top_x = self.x
-        self.top_y =(self.y[0,:] * self.top_coefficient[0] + self.y[1,:] * self.top_coefficient[1] + self.y[2,:] * self.top_coefficient[2] + self.y[3,:] * self.top_coefficient[3] + self.top_addcamber) * self.top_coefficient[7]
+            fid = open("top_foil.foil",'w')
+            fid.write("top_foil\n")
+            for i in range(numpy.shape(self.top_x)[0]):
+                fid.write(" {x_ele}  {y_ele} \n".format(x_ele = self.top_x[i], y_ele = self.top_y[i]))
+            fid.close()
 
-        fid = open("top_foil.foil",'w')
-        fid.write("top_foil\n")
-        for i in range(numpy.shape(self.top_x)[0]):
-            fid.write(" {x_ele}  {y_ele} \n".format(x_ele = self.top_x[i], y_ele = self.top_y[i]))
-        fid.close()
-
-        try:
-            fname = "a0_pwrt.dat"
-            foil = "top_foil.foil"
-            startupinfo = subprocess.STARTUPINFO()
-            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-
-
-
-            ps = subprocess.Popen(['xfoil.exe'],stdin=subprocess.PIPE,stdout=None,stderr=None,startupinfo=startupinfo)
-            pipe = bytes("\nplop\n g\n\n load {load} \n oper\n visc {Re} \n iter 100\n pacc\n {filename} \n \n alfa{alpha}\n \n quit\n".format(load=foil,Re=Re,filename=fname,alpha=alpha),"ascii")
-            res = ps.communicate(pipe)
+            try:
+                fname = "a0_pwrt.dat"
+                foil = "top_foil.foil"
+                startupinfo = subprocess.STARTUPINFO()
+                startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
 
 
-            #----read XFoil Poler
-            anlydata = numpy.loadtxt(fname,skiprows=12)
 
-            if len(anlydata.shape)==2:
-                anlydata = analydata[-1,:]
-            os.remove(fname)
+                ps = subprocess.Popen(['xfoil.exe'],stdin=subprocess.PIPE,stdout=None,stderr=None,startupinfo=startupinfo)
+                pipe = bytes("\nplop\n g\n\n load {load} \n oper\n visc {Re} \n iter 100\n pacc\n {filename} \n \n alfa{alpha}\n \n quit\n".format(load=foil,Re=Re,filename=fname,alpha=alpha),"ascii")
+                res = ps.communicate(pipe)
 
-            if numpy.isnan(float(sum(anlydata))):
-                raise
 
-            self.top_CL = anlydata[1]
-            self.top_Cd = anlydata[2]
-            self.top_Cm = anlydata[4]
+                #----read XFoil Poler
+                anlydata = numpy.loadtxt(fname,skiprows=12)
 
-        except:
-            self.top_CL = 0
-            self.top_Cd = 100
-            self.top_Cm = -100
+                if len(anlydata.shape)==2:
+                    anlydata = analydata[-1,:]
+                os.remove(fname)
 
-        if self.top_Cd <= Cd_target:
-            self.top_CL = 0
-            self.top_Cd = 100
-            self.top_Cm = -100
+                if numpy.isnan(float(sum(anlydata))):
+                    raise
 
-        self.top_thn = numpy.interp(thnpos,self.top_x[101:198],self.top_y[101:198])-numpy.interp(thnpos,numpy.flipud(self.top_x[0:99]),numpy.flipud(self.top_y[0:99]))
-        self.save_topValue = (self.pfCd * 1 / self.top_Cd + self.pfCm * numpy.exp(self.top_Cm)) * numpy.exp(-self.pfthn * abs(self.top_thn - thn) - self.pfCL * abs(self.top_CL - CL))
+                self.top_CL = anlydata[1]
+                self.top_Cd = anlydata[2]
+                self.top_Cm = anlydata[4]
+
+            except:
+                self.top_CL = 0
+                self.top_Cd = 100
+                self.top_Cm = -100
+
+            if self.top_Cd <= Cd_target:
+                self.top_CL = 0
+                self.top_Cd = 100
+                self.top_Cm = -100
+
+            self.top_thn = numpy.interp(thnpos,self.top_x[101:198],self.top_y[101:198])-numpy.interp(thnpos,numpy.flipud(self.top_x[0:99]),numpy.flipud(self.top_y[0:99]))
+            self.save_topValue = (self.pfCd * 1 / self.top_Cd + self.pfCm * numpy.exp(self.top_Cm)) * numpy.exp(-self.pfthn * abs(self.top_thn - thn) - self.pfCL * abs(self.top_CL - CL))
 
         self.history_topValue[generation-1] = copy.deepcopy(self.save_topValue)
         self.history_top[generation-1] = copy.deepcopy(self.save_top)
@@ -1384,10 +1465,10 @@ def main():
     def update_showcoe():
         basefoilpanel.acamb.showfoil.update_figure_mult(ga.x, ga.top_addcamber)
         #係数値の提示
-        basefoilpanel.no1.coe_label.setText("線形和係数 : {coe}".format(coe = round(ga.top_coefficient[0],6)))
-        basefoilpanel.no2.coe_label.setText("線形和係数 : {coe}".format(coe = round(ga.top_coefficient[1],6)))
-        basefoilpanel.no3.coe_label.setText("線形和係数 : {coe}".format(coe = round(ga.top_coefficient[2],6)))
-        basefoilpanel.no4.coe_label.setText("線形和係数 : {coe}".format(coe = round(ga.top_coefficient[3],6)))
+        basefoilpanel.no1.coe_label.setText("混合係数 : {coe}".format(coe = round(ga.top_coefficient[0],6)))
+        basefoilpanel.no2.coe_label.setText("混合係数 : {coe}".format(coe = round(ga.top_coefficient[1],6)))
+        basefoilpanel.no3.coe_label.setText("混合係数 : {coe}".format(coe = round(ga.top_coefficient[2],6)))
+        basefoilpanel.no4.coe_label.setText("混合係数 : {coe}".format(coe = round(ga.top_coefficient[3],6)))
         basefoilpanel.acamb.thnlabel.setText("翼厚係数 : {coe}".format(coe =round(ga.top_coefficient[7],4)))
 
 
@@ -1409,7 +1490,6 @@ def main():
             if ga.generation < max_generation:
                 while ga.generation < max_generation:
                     qApp.processEvents()
-                    titleexeprogress.savedonelabel.setText("")
                     if ga.run !=0 and ga.run !=2 :
                         break
                     ga.generation += 1
@@ -1429,7 +1509,7 @@ def main():
                         ga.exeXFoil(qApp,titleexeprogress,input_widget)
 
                         if ga.run == 0 or ga.run == 2:
-                            ga.evaluete_cross(input_widget,ga.generation)
+                            ga.evaluete_cross(input_widget,ga.generation,titleexeprogress.savedonelabel)
                             if numpy.min(ga.Fcon) < 0:
                                 QtGui.QMessageBox.warning(None,"Fcon error", "評価関数の値が負になっています。評価関数の係数を調節して下さい",
                                             QtGui.QMessageBox.Ok, QtGui.QMessageBox.Ok)
@@ -1445,7 +1525,7 @@ def main():
                         ga.run = 2
                         ga.exeXFoil(qApp,titleexeprogress,input_widget)
                         if ga.run == 0 or ga.run == 2:
-                            ga.evaluete_cross(input_widget,ga.generation)
+                            ga.evaluete_cross(input_widget,ga.generation,titleexeprogress.savedonelabel)
                             cfoil_widget.replot(ga,ga.maxFconNo)
                             dataplotwidget.update_dataplot(ga,ga.generation)
                             update_showcoe()
