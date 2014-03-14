@@ -10,8 +10,8 @@
 #-------------------------------------------------------------------------------
 
 #-*- coding: utf-8 -*-
-import numpy, csv
-
+import numpy, csv, binstr
+from scipy.interpolate import interp1d
 
 import sys, os, random, copy
 from PyQt4 import QtGui, QtCore
@@ -608,20 +608,47 @@ class GeneteticAlgolithm():
             self.generation = 0
             self.hash_GA = []
 
-    def getFoilChord(self,other):
-        self.no1x = other.no1.showfoil.Fx
-        self.no1y = other.no1.showfoil.Fy
-        self.no2x = other.no2.showfoil.Fx
-        self.no2y = other.no2.showfoil.Fy
-        self.no3x = other.no3.showfoil.Fx
-        self.no3y = other.no3.showfoil.Fy
-        self.no4x = other.no4.showfoil.Fx
-        self.no4y = other.no4.showfoil.Fy
 
+    def getFoilChord(self,other):
+        def normalize_foil(x,y):
+            fid2 = open("foil.foil",'w')
+            fid2.write("foil\n")
+            for i in range(numpy.shape(x)[0]):
+                fid2.write(" {x_ele}  {y_ele} \n".format(x_ele = x[i], y_ele = y[i]))
+            fid2.close()
+            foil = "foil.foil"
+            startupinfo = subprocess.STARTUPINFO()
+            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+
+            ps = subprocess.Popen(['xfoil.exe'],stdin=subprocess.PIPE,stdout=None,stderr=None,startupinfo=startupinfo)
+            pipe = bytes("\nplop\n g\n\n norm\n load {load} \n pane\n GDES\n DERO\n eXec\n \n ppar \n n 256 \n \n \n save foil.foil\n y \n \n quit \n" .format(load=foil),"ascii")
+            res = ps.communicate(pipe)
+
+            foil = numpy.loadtxt("foil.foil",skiprows=1)
+            x_out = foil[:,0]
+            y_out = foil[:,1]
+            return [x_out,y_out]
+
+
+        no1xy = normalize_foil(other.no1.showfoil.Fx,other.no1.showfoil.Fy)
+        self.no1x = no1xy[0]
+        self.no1y = no1xy[1]
+        no2xy = normalize_foil(other.no2.showfoil.Fx,other.no2.showfoil.Fy)
+        self.no2x = no2xy[0]
+        self.no2y = no2xy[1]
+        no3xy = normalize_foil(other.no3.showfoil.Fx,other.no3.showfoil.Fy)
+        self.no3x = no3xy[0]
+        self.no3y = no3xy[1]
+        no4xy = normalize_foil(other.no4.showfoil.Fx,other.no4.showfoil.Fy)
+        self.no4x = no4xy[0]
+        self.no4y = no4xy[1]
 
     def defineFoil(self):
         self.no = numpy.arange(0,101)
-        self.x = (self.no / 100) ** 1.5
+        self.x = (self.no / 100) ** 1.75
+
+        #補間の種類
+        sp_kind = "linear"
 
         #-----finding foil Leading Edge テスト
         i = int(0)
@@ -635,6 +662,7 @@ class GeneteticAlgolithm():
         uppery = numpy.interp(self.x[:],self.no1x[self.no1LE-1:no1size],self.no1y[self.no1LE-1:no1size])
         #self.x = numpy.append(numpy.flipud(self.x),numpy.delete(self.x,0))
         self.y = numpy.append(buttomy,numpy.delete(uppery,0))
+
 
         #-----finding foil Leading Edge
         i = int(0)
@@ -662,6 +690,7 @@ class GeneteticAlgolithm():
         #self.x = numpy.append(numpy.flipud(self.x),numpy.delete(self.x,0))
         self.y = numpy.vstack((self.y,numpy.append(buttomy,numpy.delete(uppery,0))))
 
+
         #-----finding foil Leading Edge
         i = int(0)
 
@@ -683,10 +712,12 @@ class GeneteticAlgolithm():
 
         self.parameter10 = [0]*n_sample
         self.gene2 = [0] * n_sample
+        self.genegray = [0] * n_sample
         self.hash_GA = [0] * n_sample
         for n in range(n_sample):
             self.parameter10[n] = [random.randint(0,4095),random.randint(0,4095),random.randint(0,4095),random.randint(0,4095),random.randint(0,4095),random.randint(0,4095),random.randint(0,4095),random.randint(0,4095)]
             self.gene2[n] = [0,0,0,0,0,0,0,0]
+            self.genegray[n] = [0,0,0,0,0,0,0,0]
             for i in range(8):
                 self.gene2[n][i] = str(bin(self.parameter10[n][i]))[2:].zfill(12)
 
@@ -700,7 +731,9 @@ class GeneteticAlgolithm():
         for n in range(n_sample):
             self.hash_GA[n] = str(hash(str(self.gene2[n])))
             self.coefficient_ratio[n] = [0,0,0,0,0,0,0,0]
+            self.top_coefficient_ratio = [0,0,0,0,0,0,0,0]
             self.coefficient[n] = [0,0,0,0,0,0,0,0]
+            self.top_coefficient = [0,0,0,0,0,0,0,0]
             for i in range(8):
                 self.coefficient_ratio[n][i] = float(int(self.gene2[n][i],2) / 4095)
 
@@ -761,11 +794,11 @@ class GeneteticAlgolithm():
 
             self.thn_GA[n] = numpy.interp(thnpos,self.x[101:198],self.y_GA[n,101:198])-numpy.interp(thnpos,numpy.flipud(self.x[0:99]),numpy.flipud(self.y_GA[n,0:99]))
             #------xfoil analyze if thn_GA in correct range
-            if self.thn_GA[n]<=thn*1.3 and self.thn_GA[n]>=thn*0.7 and self.hash_GA[n] not in self.hash_GA[n+1:n_sample] :
+            if self.thn_GA[n] <= thn * 1.3 and self.thn_GA[n] >= thn*0.7 and self.hash_GA[n] not in self.hash_GA[n+1:n_sample] :
                 fid = open("xfoil.foil",'w')
                 fid.write("xfoil\n")
                 for i in range(numpy.shape(self.x)[0]):
-                    fid.write(" {x_ele}  {y_ele} \n".format(x_ele = self.x[i], y_ele = self.y_GA[n,i]))
+                    fid.write(" {x_ele}  {y_ele} \n".format(x_ele = round(self.x[i],6), y_ele = round(self.y_GA[n,i],6)))
                 fid.close()
                 #----execute CFoil
                 try:
@@ -774,15 +807,15 @@ class GeneteticAlgolithm():
                     startupinfo = subprocess.STARTUPINFO()
                     startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
 
-
-
                     ps = subprocess.Popen(['xfoil.exe'],stdin=subprocess.PIPE,stdout=None,stderr=None,startupinfo=startupinfo)
                     pipe = bytes("\nplop\n g\n\n load {load} \n oper\n visc {Re} \n iter 100\n pacc\n {filename} \n \n alfa{alpha}\n \n quit\n".format(load=foil,Re=Re,filename=fname,alpha=alpha),"ascii")
                     res = ps.communicate(pipe)
 
 
                     #----read XFoil Poler
+
                     anlydata = numpy.loadtxt(fname,skiprows=12)
+
 
                     if len(anlydata.shape)==2:
                         anlydata = analydata[-1,:]
@@ -800,17 +833,15 @@ class GeneteticAlgolithm():
                     self.Cd_GA[n] = 100
                     self.Cm_GA[n] = -100
 
+                if self.Cd_GA[n] <= Cd_target:
+                    self.CL_GA[n] = 0
+                    self.Cd_GA[n] = 100
+                    self.Cm_GA[n] = -100
+
             else:
                 self.CL_GA[n] = 0
                 self.Cd_GA[n] = 100
                 self.Cm_GA[n] = -100
-
-            if self.Cd_GA[n] <= Cd_target:
-                self.CL_GA[n] = 0
-                self.Cd_GA[n] = 100
-                self.Cm_GA[n] = -100
-
-
 
 
     def evaluete_cross(self,evafunc,generation):
@@ -830,6 +861,8 @@ class GeneteticAlgolithm():
 
         self.Fcon = [0]*n_sample
         for n in range(n_sample):
+            print(self.Cd_GA[n])
+            print(n)
             if self.thn_GA[n] >= thn:
                 self.Fcon[n] =(self.pfCd * 1 / self.Cd_GA[n] + self.pfCm * numpy.exp(self.Cm_GA[n])) * numpy.exp(-self.pfthn * abs(self.thn_GA[n] - thn) - self.pfCL * abs(self.CL_GA[n] - CL))
             else:
@@ -872,7 +905,7 @@ class GeneteticAlgolithm():
 
         #-----最大値の保存
         if numpy.max(self.Fcon) > self.save_topValue:
-            self.save_topValue = copy.deepcopy(self.Fcon[self.maxFconNo])
+            self.save_topValue = 0.0
             self.save_top = copy.deepcopy(self.gene2[self.maxFconNo])
 
         for n in range(n_sample):
@@ -881,6 +914,83 @@ class GeneteticAlgolithm():
         if generation != 1:
             self.history_topValue.append([0])
             self.history_top.append([0])
+        #最大値の値の再計算（これで計算中の設定値の変更が可能になる。
+
+        for i in range(8):
+            self.top_coefficient_ratio[i] = float(int(self.save_top[i],2) / 4095)
+
+        #ここから　上のGenetic Algolithm内と必ず一致させること
+        self.top_coefficient[0] = 2*self.top_coefficient_ratio[0]-1
+        self.top_coefficient[1] = 2*self.top_coefficient_ratio[1]-1
+        self.top_coefficient[2] = 2*self.top_coefficient_ratio[2]-1
+        self.top_coefficient[3] = 2*self.top_coefficient_ratio[3]-1
+        self.top_coefficient[4] = 0.05*self.top_coefficient_ratio[4]-0.025  #zc
+        self.top_coefficient[5] = 0.25*self.top_coefficient_ratio[5]+0.25  #xc
+        self.top_coefficient[6] = 6*self.top_coefficient_ratio[6]-3        #alphaTE
+        self.top_coefficient[7] = 1.4*self.top_coefficient_ratio[7]+0.6    #Amplifying coefficient
+        #ここまで
+
+        xc = self.top_coefficient[5]
+        zc = self.top_coefficient[4]
+        alphaTE = self.top_coefficient[6]
+
+        c_mat = numpy.arange(0, 4 * 4).reshape(4, 4) + numpy.identity(4)
+        cu_vector = numpy.array([[zc],[0.0],[0.0],[numpy.tan(alphaTE * numpy.pi/180)]])
+        for m in range(4):
+            c_mat[0,m] = xc**(m+1)
+            c_mat[1,m] = xc**(m) * (m+1)
+            c_mat[2,m] = 1.0
+            c_mat[3,m] = m + 1.0
+        camber_coeficient =numpy.linalg.solve(c_mat,cu_vector)
+        addcamber = camber_coeficient[0] * self.x + camber_coeficient[1] * self.x**2 + camber_coeficient[2] * self.x**3 + camber_coeficient[3] * self.x ** 4
+        self.top_x = self.x
+        self.top_y =(self.y[0,:] * self.top_coefficient[0] + self.y[1,:] * self.top_coefficient[1] + self.y[2,:] * self.top_coefficient[2] + self.y[3,:] * self.top_coefficient[3] + addcamber) * self.top_coefficient[7]
+
+        fid = open("top_foil.foil",'w')
+        fid.write("top_foil\n")
+        for i in range(numpy.shape(self.top_x)[0]):
+            fid.write(" {x_ele}  {y_ele} \n".format(x_ele = self.top_x[i], y_ele = self.top_y[i]))
+        fid.close()
+
+        try:
+            fname = "a0_pwrt.dat"
+            foil = "top_foil.foil"
+            startupinfo = subprocess.STARTUPINFO()
+            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+
+
+
+            ps = subprocess.Popen(['xfoil.exe'],stdin=subprocess.PIPE,stdout=None,stderr=None,startupinfo=startupinfo)
+            pipe = bytes("\nplop\n g\n\n load {load} \n oper\n visc {Re} \n iter 100\n pacc\n {filename} \n \n alfa{alpha}\n \n quit\n".format(load=foil,Re=Re,filename=fname,alpha=alpha),"ascii")
+            res = ps.communicate(pipe)
+
+
+            #----read XFoil Poler
+            anlydata = numpy.loadtxt(fname,skiprows=12)
+
+            if len(anlydata.shape)==2:
+                anlydata = analydata[-1,:]
+            os.remove(fname)
+
+            if numpy.isnan(float(sum(anlydata))):
+                raise
+
+            self.top_CL = anlydata[1]
+            self.top_Cd = anlydata[2]
+            self.top_Cm = anlydata[4]
+
+        except:
+            self.top_CL = 0
+            self.top_Cd = 100
+            self.top_Cm = -100
+
+        if self.top_Cd <= Cd_target:
+            self.top_CL = 0
+            self.top_Cd = 100
+            self.top_Cm = -100
+
+        top_thn = numpy.interp(thnpos,self.top_x[101:198],self.top_y[101:198])-numpy.interp(thnpos,numpy.flipud(self.top_x[0:99]),numpy.flipud(self.top_y[0:99]))
+        self.save_topValue = (self.pfCd * 1 / self.top_Cd + self.pfCm * numpy.exp(self.top_Cm)) * numpy.exp(-self.pfthn * abs(top_thn - thn) - self.pfCL * abs(self.top_CL - CL))
 
         self.history_topValue[generation-1] = copy.deepcopy(self.save_topValue)
         self.history_top[generation-1] = copy.deepcopy(self.save_top)
@@ -942,19 +1052,28 @@ class GeneteticAlgolithm():
                         break
 
         #-----交配
+        #バイナリからグレイコードへの変換
+        for n in range (n_sample):
+            for i in range(8):
+                self.genegray[n][i] = binstr.b_bin_to_gray(self.gene2[n][i])
+
         for n in range(int(n_sample/2)):
             for i in range(8):
                 cross_point = random.randint(1,10)
 
+                cross1a = self.genegray[couple_GA[n][0]][i][cross_point:12]
+                cross1b = self.genegray[couple_GA[n][0]][i][0:cross_point]
+                cross2a = self.genegray[couple_GA[n][1]][i][cross_point:12]
+                cross2b = self.genegray[couple_GA[n][1]][i][0:cross_point]
 
-                cross1a = self.gene2[couple_GA[n][0]][i][cross_point:12]
-                cross1b = self.gene2[couple_GA[n][0]][i][0:cross_point]
-                cross2a = self.gene2[couple_GA[n][1]][i][cross_point:12]
-                cross2b = self.gene2[couple_GA[n][1]][i][0:cross_point]
+                self.genegray[2*n][i] = str(cross1b+cross2a).zfill(12)
 
-                self.gene2[2*n][i] = str(cross1b+cross2a).zfill(12)
+                self.genegray[2*n+1][i] = str(cross2b+cross1a).zfill(12)
 
-                self.gene2[2*n+1][i] = str(cross2b+cross1a).zfill(12)
+        #グレイコードからバイナリへの変換
+        for n in range (n_sample):
+            for i in range(8):
+                self.gene2[n][i] = binstr.b_gray_to_bin(self.genegray[n][i])
 
         self.hash_GA = [0] * n_sample
 
@@ -1034,7 +1153,7 @@ class Export_Filt_Foil():
         fid = open(self.export_foilname,'w')
         fid.write("{foilname}\n".format(foilname = os.path.splitext(os.path.basename(self.export_foilname))[0]))
         for i in range(numpy.shape(self.export_x)[0]):
-            fid.write(" {x_ele}  {y_ele} \n".format(x_ele = self.export_x[i], y_ele = self.export_y[i]))
+            fid.write(" {x_ele}  {y_ele} \n".format(x_ele = round(self.export_x[i],6), y_ele = round(self.export_y[i],6)))
         fid.close()
         os.remove("export.foil")
 
@@ -1247,7 +1366,6 @@ def main():
             titleexeprogress.exebutton.setText("start")
         else:
             titleexeprogress.stopbutton.setDisabled(0)
-            input_widget.inputwidget.inputalpha.setDisabled(1)
             max_generation = int(titleexeprogress.inputgeneration.text())
             global n_sample
             n_sample = int(titleexeprogress.inputindno.text())
@@ -1314,7 +1432,7 @@ def main():
 
 
     def startGA():
-        ret = QtGui.QMessageBox.question(None,"export foil", "世代:0から最適化計算を実行します\nよろしいですか？",
+        ret = QtGui.QMessageBox.question(None,"exe ga", "世代:0から最適化計算を実行します\nよろしいですか？",
                         QtGui.QMessageBox.Yes | QtGui.QMessageBox.No ,QtGui.QMessageBox.Yes)
         if ret == QtGui.QMessageBox.Yes:
             ga.generation = 0
