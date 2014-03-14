@@ -24,6 +24,11 @@ import matplotlib.backends.backend_agg
 import subprocess
 import shutil
 
+global coe_range, coe_start
+#             No1   No2   No3   No4   zc     xc     alphaTe  thn
+coe_range = [ 2.0,  2.0,  2.0,  2.0,  0.030, 0.40,  6.0,     1.4]
+coe_start = [-1.0, -1.0, -1.0, -1.0, -0.015, 0.20, -3.0,     0.6]
+
 
 class Matplot(matplotlib.backends.backend_qt4agg.FigureCanvasQTAgg):
     def __init__(self, parent=None, width=6, height=3, dpi=50, Fx = numpy.array([[0],[0]]), Fy = numpy.array([[0],[0]])):
@@ -99,6 +104,11 @@ class FoilPlot(Matplot):
         self.axes.plot(self.Fx, self.Fy)
         self.draw()
 
+    def update_figure_mult(self,x,y):
+        self.axes.plot(x,y)
+        self.axes.set_ylim([-0.1,0.1])
+        self.draw()
+
     def load(self):
         fid = open("default.ini",'r')
         self.foildirectory = fid.readline()
@@ -163,7 +173,9 @@ class BaseFoilWidget(QtGui.QWidget):
         self.no1.setFont(font)
         self.no1.openbutton = QtGui.QPushButton("open foil No.1")
         self.no1.openbutton.setFont(font)
+        self.no1.coe_label = QtGui.QLabel("線形和係数 : {coe}".format(coe = "--"))
         self.no1.layout = QtGui.QVBoxLayout()
+        self.no1.layout.addWidget(self.no1.coe_label)
         self.no1.layout.addWidget(self.no1.showfoil)
         self.no1.layout.addWidget(self.no1.openbutton)
         self.no1.setLayout(self.no1.layout)
@@ -174,7 +186,9 @@ class BaseFoilWidget(QtGui.QWidget):
         self.no2.showfoil.compute_initial_figure(default.default_no2)
         self.no2.setTitle("foil No.2 - {foilname}".format(foilname = os.path.basename(self.no2.showfoil.filename)))
         self.no2.openbutton = QtGui.QPushButton("open foil No.2")
+        self.no2.coe_label = QtGui.QLabel("線形和係数 : {coe}".format(coe = "--"))
         self.no2.layout = QtGui.QVBoxLayout()
+        self.no2.layout.addWidget(self.no2.coe_label)
         self.no2.layout.addWidget(self.no2.showfoil)
         self.no2.layout.addWidget(self.no2.openbutton)
         self.no2.setLayout(self.no2.layout)
@@ -185,7 +199,9 @@ class BaseFoilWidget(QtGui.QWidget):
         self.no3.showfoil.compute_initial_figure(default.default_no3)
         self.no3.setTitle("foil No.3 - {foilname}".format(foilname = os.path.basename(self.no3.showfoil.filename)))
         self.no3.openbutton = QtGui.QPushButton("open foil No.3")
+        self.no3.coe_label = QtGui.QLabel("線形和係数 : {coe}".format(coe = "--"))
         self.no3.layout = QtGui.QVBoxLayout()
+        self.no3.layout.addWidget(self.no3.coe_label)
         self.no3.layout.addWidget(self.no3.showfoil)
         self.no3.layout.addWidget(self.no3.openbutton)
         self.no3.setLayout(self.no3.layout)
@@ -196,16 +212,28 @@ class BaseFoilWidget(QtGui.QWidget):
         self.no4.showfoil.compute_initial_figure(default.default_no4)
         self.no4.setTitle("foil No.4 - {foilname}".format(foilname = os.path.basename(self.no4.showfoil.filename)))
         self.no4.openbutton = QtGui.QPushButton("open Foil No.4")
+        self.no4.coe_label = QtGui.QLabel("線形和係数 : {coe}".format(coe = "--"))
         self.no4.layout = QtGui.QVBoxLayout()
+        self.no4.layout.addWidget(self.no4.coe_label)
         self.no4.layout.addWidget(self.no4.showfoil)
         self.no4.layout.addWidget(self.no4.openbutton)
         self.no4.setLayout(self.no4.layout)
+
+#追加キャンバー
+        self.acamb = QtGui.QGroupBox("追加キャンバー&&翼厚係数",parent = self.basepanel)
+        self.acamb.showfoil = FoilPlot(default, parent = self.acamb)
+        self.acamb.thnlabel = QtGui.QLabel("翼厚係数 : {coe}".format(coe = "--"))
+        self.acamb.layout = QtGui.QVBoxLayout()
+        self.acamb.layout.addWidget(self.acamb.showfoil)
+        self.acamb.layout.addWidget(self.acamb.thnlabel)
+        self.acamb.setLayout(self.acamb.layout)
 
         basepanel_layout = QtGui.QVBoxLayout()
         basepanel_layout.addWidget(self.no1)
         basepanel_layout.addWidget(self.no2)
         basepanel_layout.addWidget(self.no3)
         basepanel_layout.addWidget(self.no4)
+        basepanel_layout.addWidget(self.acamb)
 
         self.basepanel.setLayout(basepanel_layout)
 
@@ -314,7 +342,7 @@ class Inputtarget_Setbutton_Widget(QtGui.QWidget):
 
 
         self.inputwidget.inputCL = QtGui.QLineEdit(parent = self)
-        self.inputwidget.inputCL.setText('1.3')
+        self.inputwidget.inputCL.setText('1.2')
         self.inputwidget.inputCL.selectAll()
         self.inputwidget.inputCL.setFixedWidth(30)
         self.inputwidget.label_CL = QtGui.QLabel(parent = self)
@@ -333,7 +361,7 @@ class Inputtarget_Setbutton_Widget(QtGui.QWidget):
         self.inputwidget.label_thnpos.setText("  翼厚計算位置 (%) :")
 
         self.inputwidget.inputminCd = QtGui.QLineEdit(parent = self)
-        self.inputwidget.inputminCd.setText('75')
+        self.inputwidget.inputminCd.setText('65')
         self.inputwidget.inputminCd.setFixedWidth(20)
         self.inputwidget.label_minCd = QtGui.QLabel(parent = self)
         self.inputwidget.label_minCd.setText("  抗力係数下限 (count) :")
@@ -737,14 +765,14 @@ class GeneteticAlgolithm():
             for i in range(8):
                 self.coefficient_ratio[n][i] = float(int(self.gene2[n][i],2) / 4095)
 
-            self.coefficient[n][0] = 2*self.coefficient_ratio[n][0]-1
-            self.coefficient[n][1] = 2*self.coefficient_ratio[n][1]-1
-            self.coefficient[n][2] = 2*self.coefficient_ratio[n][2]-1
-            self.coefficient[n][3] = 2*self.coefficient_ratio[n][3]-1
-            self.coefficient[n][4] = 0.05*self.coefficient_ratio[n][4]-0.025  #zc
-            self.coefficient[n][5] = 0.25*self.coefficient_ratio[n][5]+0.25  #xc
-            self.coefficient[n][6] = 6*self.coefficient_ratio[n][6]-3        #alphaTE
-            self.coefficient[n][7] = 1.4*self.coefficient_ratio[n][7]+0.6    #Amplifying coefficient
+            self.coefficient[n][0] = coe_range[0]*self.coefficient_ratio[n][0]+coe_start[0]
+            self.coefficient[n][1] = coe_range[1]*self.coefficient_ratio[n][1]+coe_start[1]
+            self.coefficient[n][2] = coe_range[2]*self.coefficient_ratio[n][2]+coe_start[2]
+            self.coefficient[n][3] = coe_range[3]*self.coefficient_ratio[n][3]+coe_start[3]
+            self.coefficient[n][4] = coe_range[4]*self.coefficient_ratio[n][4]+coe_start[4]  #zc
+            self.coefficient[n][5] = coe_range[5]*self.coefficient_ratio[n][5]+coe_start[5]  #xc
+            self.coefficient[n][6] = coe_range[6]*self.coefficient_ratio[n][6]+coe_start[6]        #alphaTE
+            self.coefficient[n][7] = coe_range[7]*self.coefficient_ratio[n][7]+coe_start[7]    #Amplifying coefficient
 
     def coeficient2foil(self):
         #-----make add-camberline
@@ -794,7 +822,7 @@ class GeneteticAlgolithm():
 
             self.thn_GA[n] = numpy.interp(thnpos,self.x[101:198],self.y_GA[n,101:198])-numpy.interp(thnpos,numpy.flipud(self.x[0:99]),numpy.flipud(self.y_GA[n,0:99]))
             #------xfoil analyze if thn_GA in correct range
-            if self.thn_GA[n] <= thn * 1.3 and self.thn_GA[n] >= thn*0.7 and self.hash_GA[n] not in self.hash_GA[n+1:n_sample] :
+            if self.thn_GA[n] <= thn * 1.5 and self.thn_GA[n] >= thn*0.5 and self.hash_GA[n] not in self.hash_GA[n+1:n_sample] :
                 fid = open("xfoil.foil",'w')
                 fid.write("xfoil\n")
                 for i in range(numpy.shape(self.x)[0]):
@@ -861,8 +889,6 @@ class GeneteticAlgolithm():
 
         self.Fcon = [0]*n_sample
         for n in range(n_sample):
-            print(self.Cd_GA[n])
-            print(n)
             if self.thn_GA[n] >= thn:
                 self.Fcon[n] =(self.pfCd * 1 / self.Cd_GA[n] + self.pfCm * numpy.exp(self.Cm_GA[n])) * numpy.exp(-self.pfthn * abs(self.thn_GA[n] - thn) - self.pfCL * abs(self.CL_GA[n] - CL))
             else:
@@ -920,14 +946,14 @@ class GeneteticAlgolithm():
             self.top_coefficient_ratio[i] = float(int(self.save_top[i],2) / 4095)
 
         #ここから　上のGenetic Algolithm内と必ず一致させること
-        self.top_coefficient[0] = 2*self.top_coefficient_ratio[0]-1
-        self.top_coefficient[1] = 2*self.top_coefficient_ratio[1]-1
-        self.top_coefficient[2] = 2*self.top_coefficient_ratio[2]-1
-        self.top_coefficient[3] = 2*self.top_coefficient_ratio[3]-1
-        self.top_coefficient[4] = 0.05*self.top_coefficient_ratio[4]-0.025  #zc
-        self.top_coefficient[5] = 0.25*self.top_coefficient_ratio[5]+0.25  #xc
-        self.top_coefficient[6] = 6*self.top_coefficient_ratio[6]-3        #alphaTE
-        self.top_coefficient[7] = 1.4*self.top_coefficient_ratio[7]+0.6    #Amplifying coefficient
+        self.top_coefficient[0] = coe_range[0]*self.top_coefficient_ratio[0]+coe_start[0]
+        self.top_coefficient[1] = coe_range[1]*self.top_coefficient_ratio[1]+coe_start[1]
+        self.top_coefficient[2] = coe_range[2]*self.top_coefficient_ratio[2]+coe_start[2]
+        self.top_coefficient[3] = coe_range[3]*self.top_coefficient_ratio[3]+coe_start[3]
+        self.top_coefficient[4] = coe_range[4]*self.top_coefficient_ratio[4]+coe_start[4]  #zc
+        self.top_coefficient[5] = coe_range[5]*self.top_coefficient_ratio[5]+coe_start[5]  #xc
+        self.top_coefficient[6] = coe_range[6]*self.top_coefficient_ratio[6]+coe_start[6]  #alphaTE
+        self.top_coefficient[7] = coe_range[7]*self.top_coefficient_ratio[7]+coe_start[7]  #Amplifying coefficient
         #ここまで
 
         xc = self.top_coefficient[5]
@@ -942,9 +968,10 @@ class GeneteticAlgolithm():
             c_mat[2,m] = 1.0
             c_mat[3,m] = m + 1.0
         camber_coeficient =numpy.linalg.solve(c_mat,cu_vector)
-        addcamber = camber_coeficient[0] * self.x + camber_coeficient[1] * self.x**2 + camber_coeficient[2] * self.x**3 + camber_coeficient[3] * self.x ** 4
+        self.top_addcamber = camber_coeficient[0] * self.x + camber_coeficient[1] * self.x**2 + camber_coeficient[2] * self.x**3 + camber_coeficient[3] * self.x ** 4
+        print(self.top_addcamber)
         self.top_x = self.x
-        self.top_y =(self.y[0,:] * self.top_coefficient[0] + self.y[1,:] * self.top_coefficient[1] + self.y[2,:] * self.top_coefficient[2] + self.y[3,:] * self.top_coefficient[3] + addcamber) * self.top_coefficient[7]
+        self.top_y =(self.y[0,:] * self.top_coefficient[0] + self.y[1,:] * self.top_coefficient[1] + self.y[2,:] * self.top_coefficient[2] + self.y[3,:] * self.top_coefficient[3] + self.top_addcamber) * self.top_coefficient[7]
 
         fid = open("top_foil.foil",'w')
         fid.write("top_foil\n")
@@ -989,8 +1016,8 @@ class GeneteticAlgolithm():
             self.top_Cd = 100
             self.top_Cm = -100
 
-        top_thn = numpy.interp(thnpos,self.top_x[101:198],self.top_y[101:198])-numpy.interp(thnpos,numpy.flipud(self.top_x[0:99]),numpy.flipud(self.top_y[0:99]))
-        self.save_topValue = (self.pfCd * 1 / self.top_Cd + self.pfCm * numpy.exp(self.top_Cm)) * numpy.exp(-self.pfthn * abs(top_thn - thn) - self.pfCL * abs(self.top_CL - CL))
+        self.top_thn = numpy.interp(thnpos,self.top_x[101:198],self.top_y[101:198])-numpy.interp(thnpos,numpy.flipud(self.top_x[0:99]),numpy.flipud(self.top_y[0:99]))
+        self.save_topValue = (self.pfCd * 1 / self.top_Cd + self.pfCm * numpy.exp(self.top_Cm)) * numpy.exp(-self.pfthn * abs(self.top_thn - thn) - self.pfCL * abs(self.top_CL - CL))
 
         self.history_topValue[generation-1] = copy.deepcopy(self.save_topValue)
         self.history_top[generation-1] = copy.deepcopy(self.save_top)
@@ -1104,14 +1131,14 @@ class Export_Filt_Foil():
             self.exprt_coefficient_ratio[i] = float(int(self.export_gene[i],2) / 4095)
 
         #ここから　上のGenetic Algolithm内と必ず一致させること
-        self.exprt_coefficient[0] = 2*self.exprt_coefficient_ratio[0]-1
-        self.exprt_coefficient[1] = 2*self.exprt_coefficient_ratio[1]-1
-        self.exprt_coefficient[2] = 2*self.exprt_coefficient_ratio[2]-1
-        self.exprt_coefficient[3] = 2*self.exprt_coefficient_ratio[3]-1
-        self.exprt_coefficient[4] = 0.05*self.exprt_coefficient_ratio[4]-0.025  #zc
-        self.exprt_coefficient[5] = 0.25*self.exprt_coefficient_ratio[5]+0.25  #xc
-        self.exprt_coefficient[6] = 6*self.exprt_coefficient_ratio[6]-3        #alphaTE
-        self.exprt_coefficient[7] = 1.4*self.exprt_coefficient_ratio[7]+0.6    #Amplifying coefficient
+        self.exprt_coefficient[0] = coe_range[0]*self.exprt_coefficient_ratio[0]+coe_start[0]
+        self.exprt_coefficient[1] = coe_range[1]*self.exprt_coefficient_ratio[1]+coe_start[1]
+        self.exprt_coefficient[2] = coe_range[2]*self.exprt_coefficient_ratio[2]+coe_start[2]
+        self.exprt_coefficient[3] = coe_range[3]*self.exprt_coefficient_ratio[3]+coe_start[3]
+        self.exprt_coefficient[4] = coe_range[4]*self.exprt_coefficient_ratio[4]+coe_start[4]  #zc
+        self.exprt_coefficient[5] = coe_range[5]*self.exprt_coefficient_ratio[5]+coe_start[5]  #xc
+        self.exprt_coefficient[6] = coe_range[6]*self.exprt_coefficient_ratio[6]+coe_start[6]  #alphaTE
+        self.exprt_coefficient[7] = coe_range[7]*self.exprt_coefficient_ratio[7]+coe_start[7]  #Amplifying coefficient
         #ここまで
 
         xc = self.exprt_coefficient[5]
@@ -1354,6 +1381,15 @@ class Foils_Default_Change(QtGui.QWidget):
 
 
 def main():
+    def update_showcoe():
+        basefoilpanel.acamb.showfoil.update_figure_mult(ga.x, ga.top_addcamber)
+        #係数値の提示
+        basefoilpanel.no1.coe_label.setText("線形和係数 : {coe}".format(coe = round(ga.top_coefficient[0],6)))
+        basefoilpanel.no2.coe_label.setText("線形和係数 : {coe}".format(coe = round(ga.top_coefficient[1],6)))
+        basefoilpanel.no3.coe_label.setText("線形和係数 : {coe}".format(coe = round(ga.top_coefficient[2],6)))
+        basefoilpanel.no4.coe_label.setText("線形和係数 : {coe}".format(coe = round(ga.top_coefficient[3],6)))
+        basefoilpanel.acamb.thnlabel.setText("翼厚係数 : {coe}".format(coe =round(ga.top_coefficient[7],4)))
+
 
     def exeGA():
         try:
@@ -1401,6 +1437,7 @@ def main():
                             else:
                                 cfoil_widget.replot(ga,ga.maxFconNo)
                                 dataplotwidget.update_dataplot(ga,ga.generation)
+                                update_showcoe()
                     else:
                         titleexeprogress.generation.setText("世代 : {fgene} / ".format(fgene = ga.generation-1))
                         ga.gene2coeficient()
@@ -1411,6 +1448,8 @@ def main():
                             ga.evaluete_cross(input_widget,ga.generation)
                             cfoil_widget.replot(ga,ga.maxFconNo)
                             dataplotwidget.update_dataplot(ga,ga.generation)
+                            update_showcoe()
+
                     if ga.run ==0 or ga.run ==2 :
                         cfoil_widget.combobox.clear()
                         for combo_n in range(ga.generation,0,-1):
@@ -1502,11 +1541,11 @@ def main():
         titleexeprogress.stopbutton.setText("stop")
 
         input_widget.inputwidget.inputalpha.setText('4')
-        input_widget.inputwidget.inputCL.setText('1.3')
+        input_widget.inputwidget.inputCL.setText('1.2')
         input_widget.inputwidget.inputRe.setText('500000')
         input_widget.inputwidget.inputthn.setText('11')
         input_widget.inputwidget.inputthnpos.setText('36')
-        input_widget.inputwidget.inputminCd.setText('75')
+        input_widget.inputwidget.inputminCd.setText('65')
 
         input_widget.inputevafunc.P1.setText('1')
         input_widget.inputevafunc.P2.setText('0')
