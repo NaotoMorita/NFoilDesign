@@ -25,8 +25,8 @@ import shutil
 
 global coe_range, coe_start
 #             No1   No2   No3   No4   zc     xc     alphaTe  thn
-coe_range = [ 2.0,  2.0,  2.0,  2.0,  0.030, 0.40,  6.0,     1.4]
-coe_start = [-1.0, -1.0, -1.0, -1.0, -0.015, 0.20, -3.0,     0.6]
+coe_range = [ 2.0,  2.0,  2.0,  2.0,  0.060, 0.40,  6.0,     1.4]
+coe_start = [-1.0, -1.0, -1.0, -1.0, -0.030, 0.20, -3.0,     0.6]
 
 
 class Matplot(matplotlib.backends.backend_qt4agg.FigureCanvasQTAgg):
@@ -1123,8 +1123,6 @@ class GeneteticAlgolithm():
             else:
                 sumFcon += self.Fcon[n]
 
-        sumFcon += self.Fcon[n_sample-1]
-
         self.surviveP = [float(0)] * n_sample
         for n in range(n_sample - 1):
             if self.hash_GA[n] in self.hash_GA[n+1:n_sample]:
@@ -1702,8 +1700,8 @@ class RangeChaneWidget(QtGui.QDialog):
         self.close()
     def default(self):
         #             No1   No2   No3   No4   zc     xc     alphaTe  thn
-        coe_range = [ 2.0,  2.0,  2.0,  2.0,  0.030, 0.40,  6.0,     1.4]
-        coe_start = [-1.0, -1.0, -1.0, -1.0, -0.015, 0.20, -3.0,     0.6]
+        coe_range = [ 2.0,  2.0,  2.0,  2.0,  0.060, 0.40,  6.0,     1.4]
+        coe_start = [-1.0, -1.0, -1.0, -1.0, -0.030, 0.20, -3.0,     0.6]
         self.coe1.stt_edit.setText("{coe1s}".format(coe1s   = round(coe_start[0],4)))
         self.coe1.range_edit.setText("{coe1r}".format(coe1r = round(coe_range[0]+coe_start[0],4)))
         self.coe2.stt_edit.setText("{coe2s}".format(coe2s   = round(coe_start[1],4)))
