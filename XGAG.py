@@ -24,9 +24,9 @@ import subprocess
 import shutil
 
 global coe_range, coe_start
-#             No1   No2   No3   No4   zc     xc     alphaTe  thn
-coe_range = [ 2.0,  2.0,  2.0,  2.0,  0.060, 0.40,  6.0,     1.4]
-coe_start = [-1.0, -1.0, -1.0, -1.0, -0.030, 0.20, -3.0,     0.6]
+#             No1   No2   No3   No4   zc     xc     alphaTe  thn   sharing
+coe_range = [ 2.0,  2.0,  2.0,  2.0,  0.030, 0.40,  6.0,     1.4,   0.025]
+coe_start = [-1.0, -1.0, -1.0, -1.0, -0.015, 0.20, -3.0,     0.6,   0.025]
 
 
 class Matplot(matplotlib.backends.backend_qt4agg.FigureCanvasQTAgg):
@@ -886,13 +886,32 @@ class GeneteticAlgolithm():
         self.CL_forplot = CL
         Cd_target = float(evafunc.inputwidget.inputminCd.text())/10000
 
-
+        #評価
         self.Fcon = [0]*n_sample
         for n in range(n_sample):
             if self.thn_GA[n] >= thn:
                 self.Fcon[n] =(self.pfCd * 1 / self.Cd_GA[n] + self.pfCm * numpy.exp(self.Cm_GA[n])) * numpy.exp(-self.pfthn * abs(self.thn_GA[n] - thn) - self.pfCL * abs(self.CL_GA[n] - CL))
             else:
                 self.Fcon[n] =(self.pfCd * 1 / self.Cd_GA[n] + self.pfCm * numpy.exp(self.Cm_GA[n])) * numpy.exp(-self.pfthn * abs(self.thn_GA[n] - thn) - self.pfCL * abs(self.CL_GA[n] - CL))
+
+        #シェアリング
+        #シェアリング半径
+        self.sigma_s = coe_range[8]
+        sharing = [0.0]*n_sample
+        if self.sigma_s != 0.0:
+            sharing = [0.0]*n_sample
+            for n in range(n_sample):
+                for i in range(n_sample):
+                    if n != i:
+                        #表現空間シェアリング
+                        d = 0.0
+                        for j in range(8):
+                            d += (self.coefficient_ratio[n][j]- self.coefficient_ratio[i][j]) ** 2
+                        d = numpy.sqrt(d)
+                        sharing[n] += max(0,1-d / self.sigma_s)
+
+        self.Fcon[n] = self.Fcon[n] / (1 + sharing[n])
+
         self.maxFconNo = self.Fcon.index(max(self.Fcon))
         self.CL = self.CL_GA[self.maxFconNo]
         self.Cd = self.Cd_GA[self.maxFconNo]
@@ -1009,7 +1028,26 @@ class GeneteticAlgolithm():
             self.top_thn = numpy.interp(thnpos,self.top_x[101:198],self.top_y[101:198])-numpy.interp(thnpos,numpy.flipud(self.top_x[0:99]),numpy.flipud(self.top_y[0:99]))
             self.save_topValue = (self.pfCd * 1 / self.top_Cd + self.pfCm * numpy.exp(self.top_Cm)) * numpy.exp(-self.pfthn * abs(self.top_thn - thn) - self.pfCL * abs(self.top_CL - CL))
 
+                    #シェアリング
+            #シェアリング半径
+            sharing_top = 0.0
+            if self.sigma_s != 0.0:
+                for i in range(n_sample):
+                    #表現空間シェアリング
+                    d = 0.0
+                    for j in range(8):
+                        d += (self.top_coefficient_ratio[j]- self.coefficient_ratio[i][j]) ** 2
+                    d = numpy.sqrt(d)
+                    sharing_top += max(0,1 - d / self.sigma_s)
+
+            if sharing_top != 0:
+                self.save_topValue = self.save_topValue / (sharing_top)
+            else:
+                self.save_topValue = self.save_topValue / (1 + sharing_top)
+
+
         savedonelabel.clear()
+        savedonelabel.setText("")
         if numpy.max(self.Fcon) > self.save_topValue:
             savedonelabel.setText("進化！")
             self.save_top = copy.deepcopy(self.gene2[self.maxFconNo])
@@ -1584,13 +1622,22 @@ class RangeChaneWidget(QtGui.QDialog):
         self.coe8.range_label = QtGui.QLabel("    最大値")
         self.coe8.range_edit = QtGui.QLineEdit(parent = self.coe8)
         self.coe8.range_edit.setFixedWidth(45)
-
         self.coe8.layout = QtGui.QHBoxLayout()
         self.coe8.layout.addWidget(self.coe8.stt_label)
         self.coe8.layout.addWidget(self.coe8.stt_edit)
         self.coe8.layout.addWidget(self.coe8.range_label)
         self.coe8.layout.addWidget(self.coe8.range_edit)
         self.coe8.setLayout(self.coe8.layout)
+
+        self.coe9 = QtGui.QGroupBox("シェアリング",parent = self)
+        self.coe9.label = QtGui.QLabel("　シェアリング半径   ",parent = self.coe9)
+        self.coe9.edit = QtGui.QLineEdit(parent = self.coe9)
+        self.coe9.edit.setFixedWidth(45)
+
+        self.coe9.layout = QtGui.QHBoxLayout()
+        self.coe9.layout.addWidget(self.coe9.label)
+        self.coe9.layout.addWidget(self.coe9.edit)
+        self.coe9.setLayout(self.coe9.layout)
 
         self.buttuns = QtGui.QWidget(parent = self)
         self.buttuns.done    = QtGui.QPushButton("適用")
@@ -1622,6 +1669,7 @@ class RangeChaneWidget(QtGui.QDialog):
         self.coe7.range_edit.setText("{coe7r}".format(coe7r = round(coe_range[6]+coe_start[6],4)))
         self.coe8.stt_edit.setText("{coe8s}".format(coe8s   = round(coe_start[7],4)))
         self.coe8.range_edit.setText("{coe8r}".format(coe8r = round(coe_range[7]+coe_start[7],4)))
+        self.coe9.edit.setText("{coe9}".format(coe9 = round(coe_range[8],4)))
         self.write_rangefile()
 
 
@@ -1636,6 +1684,7 @@ class RangeChaneWidget(QtGui.QDialog):
         self.layout.addWidget(self.coe6)
         self.layout.addWidget(self.coe7)
         self.layout.addWidget(self.coe8)
+        self.layout.addWidget(self.coe9)
         self.layout.addWidget(self.buttuns)
         self.setLayout(self.layout)
 
@@ -1649,13 +1698,13 @@ class RangeChaneWidget(QtGui.QDialog):
         try:
             rfile = numpy.loadtxt("defr.ini",delimiter =",")
             global coe_range,coe_start
-            for i in range(8):
+            for i in range(9):
                 coe_range[i] = round(rfile[i][1],4)
                 coe_start[i] = round(rfile[i][0],4)
         except:
-            #             No1   No2   No3   No4   zc     xc     alphaTe  thn
-            coe_range = [ 2.0,  2.0,  2.0,  2.0,  0.030, 0.40,  6.0,     1.4]
-            coe_start = [-1.0, -1.0, -1.0, -1.0, -0.015, 0.20, -3.0,     0.6]
+            #             No1   No2   No3   No4   zc     xc     alphaTe  thn sharing
+            coe_range = [ 2.0,  2.0,  2.0,  2.0,  0.030, 0.40,  6.0,     1.4, 0.025]
+            coe_start = [-1.0, -1.0, -1.0, -1.0, -0.015, 0.20, -3.0,     0.6, 0.025]
 
 
 
@@ -1678,11 +1727,14 @@ class RangeChaneWidget(QtGui.QDialog):
         coe_start[6] = round(float(self.coe7.stt_edit.text()),4)
         coe_range[7] = round(float(self.coe8.range_edit.text())-float(self.coe8.stt_edit.text()),4)
         coe_start[7] = round(float(self.coe8.stt_edit.text()),4)
+        coe_range[8] = round(float(self.coe9.edit.text()),4)
+        coe_start[8] = round(float(self.coe9.edit.text()),4)
+
 
         #値の書き込み
         fid = open("defr.ini",'w')
         writecsv = csv.writer(fid,lineterminator = "\n")
-        for i in range(8):
+        for i in range(9):
             writecsv.writerow([round(coe_start[i],4),round(coe_range[i],4)])
         fid.close()
 
@@ -1699,9 +1751,9 @@ class RangeChaneWidget(QtGui.QDialog):
         self.read_rangefile()
         self.close()
     def default(self):
-        #             No1   No2   No3   No4   zc     xc     alphaTe  thn
-        coe_range = [ 2.0,  2.0,  2.0,  2.0,  0.060, 0.40,  6.0,     1.4]
-        coe_start = [-1.0, -1.0, -1.0, -1.0, -0.030, 0.20, -3.0,     0.6]
+        #             No1   No2   No3   No4   zc     xc     alphaTe  thn  sharing
+        coe_range = [ 2.0,  2.0,  2.0,  2.0,  0.030, 0.40,  6.0,     1.4, 0.025]
+        coe_start = [-1.0, -1.0, -1.0, -1.0, -0.015, 0.20, -3.0,     0.6, 0.025]
         self.coe1.stt_edit.setText("{coe1s}".format(coe1s   = round(coe_start[0],4)))
         self.coe1.range_edit.setText("{coe1r}".format(coe1r = round(coe_range[0]+coe_start[0],4)))
         self.coe2.stt_edit.setText("{coe2s}".format(coe2s   = round(coe_start[1],4)))
@@ -1718,6 +1770,7 @@ class RangeChaneWidget(QtGui.QDialog):
         self.coe7.range_edit.setText("{coe7r}".format(coe7r = round(coe_range[6]+coe_start[6],4)))
         self.coe8.stt_edit.setText("{coe8s}".format(coe8s   = round(coe_start[7],4)))
         self.coe8.range_edit.setText("{coe8r}".format(coe8r = round(coe_range[7]+coe_start[7],4)))
+        self.coe9.edit.setText("{coe9r}".format(coe9r = round(coe_range[8],4)))
         self.write_rangefile()
 
 
@@ -2300,11 +2353,12 @@ def main():
             titleexeprogress.savedonelabel.setText("ロードが完了しました")
 
     def about_XGAG():
-        QtGui.QMessageBox.about(None,"About XGAG","".join(["<h2>XGAG 1.0</h2>",
+        QtGui.QMessageBox.about(None,"About XGAG","".join(["<h2>XGAG 2.00</h2>",
                                                "<p>Copyright (C) 2013 Naoto Morita",
                                                "<br>Copyright (C) 2000 Mark Drela, Harold Youngren</br></p>",
-                                               "<p>Special thanks to : Masanao Matsunaga, Satoshi Utada, Daiki Adachi, Koich Tsumori, bambino_del_uccello,"
+                                               "<p>Special thanks to : Masanao Matsunaga, Satoshi Utada, Daiki Adachi, Koichi Tsumori, bambino_del_uccello,"
                                                "   Kenji Takei, Kosuke Okabe, Ryosuke Ikeda, Tetsuya Okano, Tomonari Sato, Masahiro Ota, meka, Yuji Fukami"
+                                               "<p>Icon : "
                                                "<p>XGAG is without any warranty. This program has been developed excusively for the design of airfoil. Any other usage is strongly disapproved.</p>"
                                                "<p>XGAG distributed under the GNU General Public Licence</p>"]))
 
