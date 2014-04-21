@@ -11,7 +11,7 @@ includefiles =["xfoil.exe","FOILS"]
 #setup
 setup(
         name = "XGAG",
-        version = "2.00",
+        version = "2.02",
         options = {"build_exe": {"includes": includes,"include_files":includefiles}},
         executables = [Executable("XGAG.py", base=base)],
 )

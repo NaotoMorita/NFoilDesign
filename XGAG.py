@@ -66,8 +66,15 @@ class FoilPlot(Matplot):
         self.filename = default_foil
         if not self.filename or not os.path.exists(self.filename):
             foil = numpy.array([[0.0,0.0],[0.0,0.0]])
+            if os.path.exists("default.ini") and self.filename:
+                QtGui.QMessageBox.warning(None,"foil open error", "既定翼型の読込に失敗しました。リンク先を確認して下さい",
+                                        QtGui.QMessageBox.Ok, QtGui.QMessageBox.Ok)
+                os.remove("default.ini")
+                self.filename = ""
+                self.foildirectory =""
         else:
             foil = numpy.loadtxt(self.filename,skiprows=1)
+
         self.Fx = foil[:,0]
         self.Fy = foil[:,1]
         self.axes.plot(self.Fx, self.Fy)
@@ -76,6 +83,12 @@ class FoilPlot(Matplot):
         self.filename = default_foil
         if not self.filename or not os.path.exists(self.filename):
             foil = numpy.array([[0.0,0.0],[0.0,0.0]])
+            if os.path.exists("default.ini") and self.filename:
+                QtGui.QMessageBox.warning(None,"foil open error", "既定翼型の読込に失敗しました。リンク先を確認して下さい",
+                                        QtGui.QMessageBox.Ok, QtGui.QMessageBox.Ok)
+                os.remove("default.ini")
+                self.filename = ""
+                self.foildirectory =""
         else:
             foil = numpy.loadtxt(self.filename,skiprows=1)
         self.Fx = foil[:,0]
@@ -97,6 +110,7 @@ class FoilPlot(Matplot):
         self.Fy = foil[:,1]
         self.axes.plot(self.Fx, self.Fy)
         self.draw()
+
 
     def update_figure3(self):
         self.axes.plot(self.Fx, self.Fy)
@@ -120,6 +134,10 @@ class FoilPlot(Matplot):
                 self.Fy = foil[:,1]
         else:
             self.filename = temp
+
+
+
+
 
 class DataPlot(Matplot):
     """A canvas that updates itself every second with a new plot."""
