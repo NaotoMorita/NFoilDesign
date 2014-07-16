@@ -295,7 +295,7 @@ class CalclatedFoilWidget(QtGui.QWidget):
 
         self.datapanel = QtGui.QWidget(parent = self.itgcfw)
         self.CLlabel = QtGui.QLabel()
-        self.CLlabel.setText("揚力係数CL : {CL}    抗力係数Cd(*10000) : {Cd}    揚抗比CL/Cd : {CLCd}    モーメント係数Cm : {Cm}     翼厚 : {thn:4}".format(CL = "NaN", Cd = "NaN", CLCd = "NaN",Cm = "Nan", thn = "NaN"))
+        self.CLlabel.setText("揚力係数CL : {CL}    抗力係数Cd(*10000) : {Cd}    揚抗比CL/Cd : {CLCd}    モーメント係数Cm : {Cm}     翼厚 : {thn:4}".format(CL = "--", Cd = "--", CLCd = "--",Cm = "--", thn = "--"))
         self.CLlabel.setFont(font)
         self.outputbutton = QtGui.QPushButton("翼型出力",parent = self.datapanel)
         self.outputbutton.setFont(font)
@@ -1811,7 +1811,7 @@ def main():
         if not basefoilpanel.no1.showfoil.filename or not basefoilpanel.no2.showfoil.filename or not basefoilpanel.no3.showfoil.filename or not basefoilpanel.no4.showfoil.filename :
             QtGui.QMessageBox.warning(None,"翼型がありません", "基準翼型を選択して下さい\nデフォルト設定を行っていないのであれば、\nOptionタブより設定して下さい",
                         QtGui.QMessageBox.Ok, QtGui.QMessageBox.Ok)
-            titleexeprogress.exebutton.setText("start")
+            titleexeprogress.exebutton.setText("計算")
         else:
             titleexeprogress.stopbutton.setDisabled(0)
             max_generation = int(titleexeprogress.inputgeneration.text())
