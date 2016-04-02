@@ -1809,7 +1809,7 @@ def main():
         except:
             pass
         if not basefoilpanel.no1.showfoil.filename or not basefoilpanel.no2.showfoil.filename or not basefoilpanel.no3.showfoil.filename or not basefoilpanel.no4.showfoil.filename :
-            QtGui.QMessageBox.warning(None,"翼型がありません", "基準翼型を選択して下さい\nデフォルト設定を行っていないのであれば、\nOptionタブより設定して下さい",
+            QtGui.QMessageBox.warning(None,"翼型がありません", "基準翼型を選択して下さい\nデフォルト設定を行っていないのであれば、\n設定タブより設定して下さい",
                         QtGui.QMessageBox.Ok, QtGui.QMessageBox.Ok)
             titleexeprogress.exebutton.setText("計算")
         else:
