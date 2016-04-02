@@ -61,17 +61,17 @@ class SettingWidget(QtGui.QWidget):
     def __init__(self, parent = None):
         QtGui.QTabWidget.__init__(self, parent = parent)
 
-        wantlabel = QtGui.QLabel("求めたいもの",parent = self)
+        wantlabel = QtGui.QLabel(u"求めたいもの",parent = self)
         self.combo = QtGui.QComboBox(parent = self)
-        self.combo.addItem("衝撃波角(deg)")
-        self.combo.addItem("偏角(deg)")
-        self.combo.addItem("マッハ数")
+        self.combo.addItem(u"衝撃波角(deg)")
+        self.combo.addItem(u"偏角(deg)")
+        self.combo.addItem(u"マッハ数")
 
-        self.exebutton = QtGui.QPushButton("計算")
+        self.exebutton = QtGui.QPushButton(u"計算")
 
-        thetalabel = QtGui.QLabel("  偏角(deg)： ")
-        betalabel = QtGui.QLabel("  衝撃波角(deg)： ")
-        machlabel = QtGui.QLabel("  マッハ数: ")
+        thetalabel = QtGui.QLabel(u"  偏角(deg)： ")
+        betalabel = QtGui.QLabel(u"  衝撃波角(deg)： ")
+        machlabel = QtGui.QLabel(u"  マッハ数: ")
         self.thetaedit = QtGui.QLineEdit()
         self.thetaedit.setFixedWidth(50)
         self.betaedit  = QtGui.QLineEdit()
@@ -108,21 +108,21 @@ class Solve():
                 self.theta = float(settingwidget.thetaedit.text()) / 180 * numpy.pi
                 self.mach = float(settingwidget.machedit.text())
             except:
-                QtGui.QMessageBox.warning(None,"Error","値の読込に失敗しました。\n偏角とマッハ数が正しく入力されているか確認して下さい")
+                QtGui.QMessageBox.warning(None,"Error",u"値の読込に失敗しました。\n偏角とマッハ数が正しく入力されているか確認して下さい")
                 self.exceptflag = 1
         elif self.want == 1:
             try:
                 self.beta = float(settingwidget.betaedit.text()) / 180 * numpy.pi
                 self.mach = float(settingwidget.machedit.text())
             except:
-                QtGui.QMessageBox.warning(None,"Error","値の読込に失敗しました。\n衝撃波角とマッハ数が正しく入力されているか確認して下さい")
+                QtGui.QMessageBox.warning(None,"Error",u"値の読込に失敗しました。\n衝撃波角とマッハ数が正しく入力されているか確認して下さい")
                 self.exceptflag = 1
         else:
             try:
                 self.beta = float(settingwidget.betaedit.text()) / 180 * numpy.pi
                 self.theta = float(settingwidget.thetaedit.text()) / 180 * numpy.pi
             except:
-                QtGui.QMessageBox.warning(None,"Error","値の読込に失敗しました。\n衝撃波角と偏角が正しく入力されているか確認して下さい")
+                QtGui.QMessageBox.warning(None,"Error",u"値の読込に失敗しました。\n衝撃波角と偏角が正しく入力されているか確認して下さい")
                 self.exceptflag = 1
 
     def calculate(self):
@@ -139,7 +139,7 @@ class Solve():
                 f = lambda mach : numpy.tan(self.theta) - ((mach ** 2.0 * numpy.sin(self.beta) ** 2.0 - 1.0) / numpy.tan(self.beta) / (1.0 + (1.0 / 2.0 * (self.kappa + 1.0) - numpy.sin(self.beta) ** 2.0) * mach ** 2))
                 self.mach = opt.fsolve(f,1.1,xtol=1e-5,maxfev = 1000)[0]
         except RuntimeWarning:
-            QtGui.QMessageBox.warning(None,"Error","計算にに失敗しました。\n値が正しく入力されているか確認して下さい")
+            QtGui.QMessageBox.warning(None,"Error",u"計算にに失敗しました。\n値が正しく入力されているか確認して下さい")
 
 
 
@@ -167,7 +167,7 @@ def main():
     qApp = QtGui.QApplication(sys.argv)
     mainwindow = QtGui.QMainWindow()
     mainwindow.setMinimumSize(400,400)
-    mainwindow.setWindowTitle("θ-β-M関係式")
+    mainwindow.setWindowTitle(u"θ-β-M関係式")
     mainpanel = QtGui.QWidget()
 
     settingwidget = SettingWidget(mainpanel)

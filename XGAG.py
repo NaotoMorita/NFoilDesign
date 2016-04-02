@@ -67,7 +67,7 @@ class FoilPlot(Matplot):
         if not self.filename or not os.path.exists(self.filename):
             foil = numpy.array([[0.0,0.0],[0.0,0.0]])
             if os.path.exists("default.ini") and self.filename:
-                QtGui.QMessageBox.warning(None,"foil open error", "既定翼型の読込に失敗しました。リンク先を確認して下さい",
+                QtGui.QMessageBox.warning(None,"foil open error", u"既定翼型の読込に失敗しました。リンク先を確認して下さい",
                                         QtGui.QMessageBox.Ok, QtGui.QMessageBox.Ok)
                 os.remove("default.ini")
                 self.filename = ""
@@ -84,7 +84,7 @@ class FoilPlot(Matplot):
         if not self.filename or not os.path.exists(self.filename):
             foil = numpy.array([[0.0,0.0],[0.0,0.0]])
             if os.path.exists("default.ini") and self.filename:
-                QtGui.QMessageBox.warning(None,"foil open error", "既定翼型の読込に失敗しました。リンク先を確認して下さい",
+                QtGui.QMessageBox.warning(None,"foil open error", u"既定翼型の読込に失敗しました。リンク先を確認して下さい",
                                         QtGui.QMessageBox.Ok, QtGui.QMessageBox.Ok)
                 os.remove("default.ini")
                 self.filename = ""
@@ -127,7 +127,7 @@ class FoilPlot(Matplot):
         self.foildirectory = self.foildirectory.rstrip("\n")
         fid.close()
         temp = copy.deepcopy(self.filename)
-        self.filename = QtGui.QFileDialog.getOpenFileName(parent = None,caption = "翼型を開く" ,directory=self.foildirectory, filter="Foil Chord File(*.dat *.txt)")
+        self.filename = QtGui.QFileDialog.getOpenFileName(parent = None,caption = u"翼型を開く" ,directory=self.foildirectory, filter="Foil Chord File(*.dat *.txt)")
         if self.filename:
                 foil = numpy.loadtxt(self.filename,skiprows=1)
                 self.Fx = foil[:,0]
@@ -170,7 +170,7 @@ class BaseFoilWidget(QtGui.QWidget):
         font = QtGui.QFont()
         font.setPointSize(12)
 
-        self.basepanel = QtGui.QGroupBox("基準翼型",parent = self)
+        self.basepanel = QtGui.QGroupBox(u"基準翼型",parent = self)
         self.basepanel.setFont(font)
         self.basepanel.setMinimumSize(150,600)
         self.basepanel.setMaximumSize(400,2000)
@@ -181,14 +181,14 @@ class BaseFoilWidget(QtGui.QWidget):
 
 
 #第1翼型
-        self.no1 = QtGui.QGroupBox("第1翼型",parent = self.basepanel)
+        self.no1 = QtGui.QGroupBox(u"第1翼型",parent = self.basepanel)
         self.no1.showfoil = FoilPlot(default,parent = self.no1)
         self.no1.showfoil.compute_initial_figure(default.default_no1)
-        self.no1.setTitle("第1翼型 - {foilname}".format(foilname = os.path.basename(self.no1.showfoil.filename)))
+        self.no1.setTitle(u"第1翼型 - {foilname}".format(foilname = os.path.basename(self.no1.showfoil.filename)))
         self.no1.setFont(font)
-        self.no1.openbutton = QtGui.QPushButton("第1翼型を開く")
+        self.no1.openbutton = QtGui.QPushButton(u"第1翼型を開く")
         self.no1.openbutton.setFont(font)
-        self.no1.coe_label = QtGui.QLabel("混合係数 : {coe}".format(coe = "--"))
+        self.no1.coe_label = QtGui.QLabel(u"混合係数 : {coe}".format(coe = "--"))
         self.no1.layout = QtGui.QVBoxLayout()
         self.no1.layout.addWidget(self.no1.coe_label)
         self.no1.layout.addWidget(self.no1.showfoil)
@@ -196,12 +196,12 @@ class BaseFoilWidget(QtGui.QWidget):
         self.no1.setLayout(self.no1.layout)
 
 #第2翼型
-        self.no2 = QtGui.QGroupBox("第2翼型",parent = self.basepanel)
+        self.no2 = QtGui.QGroupBox(u"第2翼型",parent = self.basepanel)
         self.no2.showfoil = FoilPlot(default, parent = self.no2)
         self.no2.showfoil.compute_initial_figure(default.default_no2)
-        self.no2.setTitle("第2翼型 - {foilname}".format(foilname = os.path.basename(self.no2.showfoil.filename)))
-        self.no2.openbutton = QtGui.QPushButton("第2翼型を開く")
-        self.no2.coe_label = QtGui.QLabel("混合係数 : {coe}".format(coe = "--"))
+        self.no2.setTitle(u"第2翼型 - {foilname}".format(foilname = os.path.basename(self.no2.showfoil.filename)))
+        self.no2.openbutton = QtGui.QPushButton(u"第2翼型を開く")
+        self.no2.coe_label = QtGui.QLabel(u"混合係数 : {coe}".format(coe = "--"))
         self.no2.layout = QtGui.QVBoxLayout()
         self.no2.layout.addWidget(self.no2.coe_label)
         self.no2.layout.addWidget(self.no2.showfoil)
@@ -209,12 +209,12 @@ class BaseFoilWidget(QtGui.QWidget):
         self.no2.setLayout(self.no2.layout)
 
 #第3翼型
-        self.no3 = QtGui.QGroupBox("第3翼型",parent = self.basepanel)
+        self.no3 = QtGui.QGroupBox(u"第3翼型",parent = self.basepanel)
         self.no3.showfoil = FoilPlot(default, parent = self.no3)
         self.no3.showfoil.compute_initial_figure(default.default_no3)
-        self.no3.setTitle("第3翼型 - {foilname}".format(foilname = os.path.basename(self.no3.showfoil.filename)))
-        self.no3.openbutton = QtGui.QPushButton("第3翼型を開く")
-        self.no3.coe_label = QtGui.QLabel("混合係数 : {coe}".format(coe = "--"))
+        self.no3.setTitle(u"第3翼型 - {foilname}".format(foilname = os.path.basename(self.no3.showfoil.filename)))
+        self.no3.openbutton = QtGui.QPushButton(u"第3翼型を開く")
+        self.no3.coe_label = QtGui.QLabel(u"混合係数 : {coe}".format(coe = "--"))
         self.no3.layout = QtGui.QVBoxLayout()
         self.no3.layout.addWidget(self.no3.coe_label)
         self.no3.layout.addWidget(self.no3.showfoil)
@@ -222,12 +222,12 @@ class BaseFoilWidget(QtGui.QWidget):
         self.no3.setLayout(self.no3.layout)
 
 #第4翼型
-        self.no4 = QtGui.QGroupBox("第4翼型",parent = self.basepanel)
+        self.no4 = QtGui.QGroupBox(u"第4翼型",parent = self.basepanel)
         self.no4.showfoil = FoilPlot(default, parent = self.no4)
         self.no4.showfoil.compute_initial_figure(default.default_no4)
-        self.no4.setTitle("第4翼型 - {foilname}".format(foilname = os.path.basename(self.no4.showfoil.filename)))
-        self.no4.openbutton = QtGui.QPushButton("第4翼型を開く")
-        self.no4.coe_label = QtGui.QLabel("混合係数 : {coe}".format(coe = "--"))
+        self.no4.setTitle(u"第4翼型 - {foilname}".format(foilname = os.path.basename(self.no4.showfoil.filename)))
+        self.no4.openbutton = QtGui.QPushButton(u"第4翼型を開く")
+        self.no4.coe_label = QtGui.QLabel(u"混合係数 : {coe}".format(coe = "--"))
         self.no4.layout = QtGui.QVBoxLayout()
         self.no4.layout.addWidget(self.no4.coe_label)
         self.no4.layout.addWidget(self.no4.showfoil)
@@ -235,9 +235,9 @@ class BaseFoilWidget(QtGui.QWidget):
         self.no4.setLayout(self.no4.layout)
 
 #追加キャンバー
-        self.acamb = QtGui.QGroupBox("追加キャンバー&&翼厚係数",parent = self.basepanel)
+        self.acamb = QtGui.QGroupBox(u"追加キャンバー&&翼厚係数",parent = self.basepanel)
         self.acamb.showfoil = FoilPlot(default, parent = self.acamb)
-        self.acamb.thnlabel = QtGui.QLabel("翼厚係数 : {coe}".format(coe = "--"))
+        self.acamb.thnlabel = QtGui.QLabel(u"翼厚係数 : {coe}".format(coe = "--"))
         self.acamb.layout = QtGui.QVBoxLayout()
         self.acamb.layout.addWidget(self.acamb.showfoil)
         self.acamb.layout.addWidget(self.acamb.thnlabel)
@@ -259,22 +259,22 @@ class BaseFoilWidget(QtGui.QWidget):
 
     def updatefigure_changelabel_no1(self):
         self.no1.showfoil.update_figure()
-        self.no1.setTitle("第1翼型 - {foilname}".format(foilname = os.path.basename(self.no1.showfoil.filename)))
+        self.no1.setTitle(u"第1翼型 - {foilname}".format(foilname = os.path.basename(self.no1.showfoil.filename)))
         #self.no1.foilnamelabel.setText(os.path.basename(self.no1.showfoil.filename))
 
     def updatefigure_changelabel_no2(self):
         self.no2.showfoil.update_figure()
-        self.no2.setTitle("第2翼型 - {foilname}".format(foilname = os.path.basename(self.no2.showfoil.filename)))
+        self.no2.setTitle(u"第2翼型 - {foilname}".format(foilname = os.path.basename(self.no2.showfoil.filename)))
         #self.no2.foilnamelabel.setText(os.path.basename(self.no2.showfoil.filename))
 
     def updatefigure_changelabel_no3(self):
         self.no3.showfoil.update_figure()
-        self.no3.setTitle("第3翼型 - {foilname}".format(foilname = os.path.basename(self.no3.showfoil.filename)))
+        self.no3.setTitle(u"第3翼型 - {foilname}".format(foilname = os.path.basename(self.no3.showfoil.filename)))
         #self.no3.foilnamelabel.setText(os.path.basename(self.no3.showfoil.filename))
 
     def updatefigure_changelabel_no4(self):
         self.no4.showfoil.update_figure()
-        self.no4.setTitle("第4翼型 - {foilname}".format(foilname = os.path.basename(self.no4.showfoil.filename)))
+        self.no4.setTitle(u"第4翼型 - {foilname}".format(foilname = os.path.basename(self.no4.showfoil.filename)))
 
         #self.no4.foilnamelabel.setText(os.path.basename(self.no4.showfoil.filename))
 
@@ -295,13 +295,13 @@ class CalclatedFoilWidget(QtGui.QWidget):
 
         self.datapanel = QtGui.QWidget(parent = self.itgcfw)
         self.CLlabel = QtGui.QLabel()
-        self.CLlabel.setText("揚力係数CL : {CL}    抗力係数Cd(*10000) : {Cd}    揚抗比CL/Cd : {CLCd}    モーメント係数Cm : {Cm}     翼厚 : {thn:4}".format(CL = "--", Cd = "--", CLCd = "--",Cm = "--", thn = "--"))
+        self.CLlabel.setText(u"揚力係数CL : {CL}    抗力係数Cd(*10000) : {Cd}    揚抗比CL/Cd : {CLCd}    モーメント係数Cm : {Cm}     翼厚 : {thn:4}".format(CL = "--", Cd = "--", CLCd = "--",Cm = "--", thn = "--"))
         self.CLlabel.setFont(font)
-        self.outputbutton = QtGui.QPushButton("翼型出力",parent = self.datapanel)
+        self.outputbutton = QtGui.QPushButton(u"翼型出力",parent = self.datapanel)
         self.outputbutton.setFont(font)
 
         self.outputbutton.setFixedWidth(100)
-        self.rollbackbutton = QtGui.QPushButton("巻き戻し",parent = self.datapanel)
+        self.rollbackbutton = QtGui.QPushButton(u"巻き戻し",parent = self.datapanel)
         self.rollbackbutton.setFont(font)
         self.rollbackbutton.setFixedWidth(100)
         self.combobox = QtGui.QComboBox()
@@ -325,12 +325,12 @@ class CalclatedFoilWidget(QtGui.QWidget):
         self.cfw.Fx = ga.x
         self.cfw.Fy = ga.y_GA[foilno]
         self.cfw.update_figure3()
-        self.CLlabel.setText("CL : {CL:5}    Cd(count) : {Cd:4}    CL/Cd : {CLCd:4}    Cm : {Cm}     翼厚 : {thn:4}".format(CL = round(ga.CL, 4), Cd = round(ga.Cd * 10000,1), CLCd = round(ga.CL/ga.Cd,1),Cm = round(ga.Cm,4), thn = round(ga.thn * 100,4)))
+        self.CLlabel.setText(u"CL : {CL:5}    Cd(count) : {Cd:4}    CL/Cd : {CLCd:4}    Cm : {Cm}     翼厚 : {thn:4}".format(CL = round(ga.CL, 4), Cd = round(ga.Cd * 10000,1), CLCd = round(ga.CL/ga.Cd,1),Cm = round(ga.Cm,4), thn = round(ga.thn * 100,4)))
 
     def replot2(self,ga):
         self.cfw.update_figure3()
         shownom = numpy.shape(ga.history_CL)[0]-1
-        self.CLlabel.setText("CL : {CL:5}    Cd(count) : {Cd:4}    CL/Cd : {CLCd:4}    Cm : {Cm}     翼厚 : {thn:4}".format(CL = round(ga.history_CL[shownom], 4), Cd = round(ga.history_Cd[shownom] * 10000,1), CLCd = round(ga.history_CL[shownom]/ga.history_Cd[shownom],1),Cm = round(ga.history_Cm[shownom],4), thn = round(ga.history_thn[shownom] * 100,4)))
+        self.CLlabel.setText(u"CL : {CL:5}    Cd(count) : {Cd:4}    CL/Cd : {CLCd:4}    Cm : {Cm}     翼厚 : {thn:4}".format(CL = round(ga.history_CL[shownom], 4), Cd = round(ga.history_Cd[shownom] * 10000,1), CLCd = round(ga.history_CL[shownom]/ga.history_Cd[shownom],1),Cm = round(ga.history_Cm[shownom],4), thn = round(ga.history_thn[shownom] * 100,4)))
 
 
 class Inputtarget_Setbutton_Widget(QtGui.QWidget):
@@ -346,14 +346,14 @@ class Inputtarget_Setbutton_Widget(QtGui.QWidget):
         self.inputwidget.inputalpha.setFixedWidth(35)
         self.inputwidget.inputalpha.Normal = 4
         self.inputwidget.label_alpha = QtGui.QLabel(parent = self)
-        self.inputwidget.label_alpha.setText("設計パラメータ  迎角 (deg) :")
+        self.inputwidget.label_alpha.setText(u"設計パラメータ  迎角 (deg) :")
 
 
         self.inputwidget.inputRe = QtGui.QLineEdit(parent = self)
         self.inputwidget.inputRe.setText('500000')
         self.inputwidget.inputRe.setFixedWidth(50)
         self.inputwidget.label_Re = QtGui.QLabel(parent = self)
-        self.inputwidget.label_Re.setText("  Reynolds数 :")
+        self.inputwidget.label_Re.setText(u"  Reynolds数 :")
 
 
         self.inputwidget.inputCL = QtGui.QLineEdit(parent = self)
@@ -361,25 +361,25 @@ class Inputtarget_Setbutton_Widget(QtGui.QWidget):
         self.inputwidget.inputCL.selectAll()
         self.inputwidget.inputCL.setFixedWidth(30)
         self.inputwidget.label_CL = QtGui.QLabel(parent = self)
-        self.inputwidget.label_CL.setText("  揚力係数 :")
+        self.inputwidget.label_CL.setText(u"  揚力係数 :")
 
         self.inputwidget.inputthn = QtGui.QLineEdit(parent = self)
         self.inputwidget.inputthn.setText('11')
         self.inputwidget.inputthn.setFixedWidth(30)
         self.inputwidget.label_thn = QtGui.QLabel(parent = self)
-        self.inputwidget.label_thn.setText("  翼厚 (%) :")
+        self.inputwidget.label_thn.setText(u"  翼厚 (%) :")
 
         self.inputwidget.inputthnpos = QtGui.QLineEdit(parent = self)
         self.inputwidget.inputthnpos.setText('36')
         self.inputwidget.inputthnpos.setFixedWidth(30)
         self.inputwidget.label_thnpos = QtGui.QLabel(parent = self)
-        self.inputwidget.label_thnpos.setText("  翼厚計算位置 (%) :")
+        self.inputwidget.label_thnpos.setText(u"  翼厚計算位置 (%) :")
 
         self.inputwidget.inputminCd = QtGui.QLineEdit(parent = self)
         self.inputwidget.inputminCd.setText('65')
         self.inputwidget.inputminCd.setFixedWidth(20)
         self.inputwidget.label_minCd = QtGui.QLabel(parent = self)
-        self.inputwidget.label_minCd.setText("  抗力係数下限 (count) :")
+        self.inputwidget.label_minCd.setText(u"  抗力係数下限 (count) :")
 
 
 
@@ -405,7 +405,7 @@ class Inputtarget_Setbutton_Widget(QtGui.QWidget):
 #-----2行目、評価関数のパラメータを入力
         self.inputevafunc = QtGui.QWidget(parent = self.basecontener)
         self.inputevafunc.text1 = QtGui.QLabel(parent = self.inputevafunc)
-        self.inputevafunc.text1.setText("評価関数 : (")
+        self.inputevafunc.text1.setText(u"評価関数 : (")
         self.inputevafunc.P1 = QtGui.QLineEdit(parent = self.inputevafunc)
         self.inputevafunc.P1.setText("1")
         self.inputevafunc.P1.setFixedWidth(30)
@@ -467,7 +467,7 @@ class DataPlotWidget(QtGui.QWidget):
         QtGui.QWidget.__init__(self, parent = parent)
 
         self.main_widget = QtGui.QWidget(parent = self)
-        frame = QtGui.QGroupBox("各個体の評価関数の値",parent = self.main_widget)
+        frame = QtGui.QGroupBox(u"各個体の評価関数の値",parent = self.main_widget)
         frame.setMinimumSize(200,200)
 
         self.Fconplot = DataPlot(parent = frame)
@@ -508,8 +508,8 @@ class DataPlotWidget(QtGui.QWidget):
         evo_widget_layout.addWidget(self.evo_thnplot)
         evo_widget.setLayout(evo_widget_layout)
 
-        self.convhistory.addTab(conv_widget,"現世代")
-        self.convhistory.addTab(evo_widget,"履歴")
+        self.convhistory.addTab(conv_widget,u"現世代")
+        self.convhistory.addTab(evo_widget,u"履歴")
 
         main_widget_layout = QtGui.QHBoxLayout()
         main_widget_layout.addWidget(frame)
@@ -579,23 +579,23 @@ class TitleExeStopProgressWidget(QtGui.QWidget):
 
 
         self.indno = QtGui.QLabel(parent = self.second)
-        self.indno.setText("個体数 : ")
+        self.indno.setText(u"個体数 : ")
         self.indno.setFont(font)
         self.inputindno = QtGui.QLineEdit(parent = self.second)
         self.inputindno.setFixedWidth(30)
         self.inputindno.setText("200")
 
         self.generation = QtGui.QLabel(parent = self.second)
-        self.generation.setText("  世代 : 0 / ")
+        self.generation.setText(u"  世代 : 0 / ")
         self.generation.setFont(font)
         self.inputgeneration = QtGui.QLineEdit(parent = self.second)
         self.inputgeneration.setFixedWidth(30)
         self.inputgeneration.setText("50")
 
-        self.exebutton = QtGui.QPushButton("計算")
+        self.exebutton = QtGui.QPushButton(u"計算")
         self.exebutton.setFixedWidth(70)
         self.exebutton.setFont(font)
-        self.stopbutton = QtGui.QPushButton("一時停止")
+        self.stopbutton = QtGui.QPushButton(u"一時停止")
         self.stopbutton.setFixedWidth(70)
         self.stopbutton.setFont(font)
 
@@ -1067,7 +1067,7 @@ class GeneteticAlgolithm():
         savedonelabel.clear()
         savedonelabel.setText("")
         if numpy.max(self.Fcon) > self.save_topValue:
-            savedonelabel.setText("進化！")
+            savedonelabel.setText(u"進化！")
             self.save_top = copy.deepcopy(self.gene2[self.maxFconNo])
 
         for n in range(n_sample):
@@ -1327,18 +1327,18 @@ class Export_Filt_Foil():
 
 
     def dialog(self,cfoil_widget,input_widget,default):
-        ret = QtGui.QMessageBox.question(None,"翼型出力",
-                        "世代:{generation}を出力します\n速度分布の平滑化行いますか？".format(generation = int(cfoil_widget.combobox.currentText())),
+        ret = QtGui.QMessageBox.question(None,u"翼型出力",
+                        u"世代:{generation}を出力します\n速度分布の平滑化行いますか？".format(generation = int(cfoil_widget.combobox.currentText())),
                         QtGui.QMessageBox.Yes | QtGui.QMessageBox.No | QtGui.QMessageBox.Cancel,QtGui.QMessageBox.No)
         if ret == QtGui.QMessageBox.Yes:
-            self.export_foilname = QtGui.QFileDialog.getSaveFileName(None, caption = "翼型出力(速度分布平滑化))",
+            self.export_foilname = QtGui.QFileDialog.getSaveFileName(None, caption = u"翼型出力(速度分布平滑化))",
                                     directory = os.path.join(default.foildirectory,"XGAGf{generation}".format(generation =
                                     int(cfoil_widget.combobox.currentText()))), filter = "Foil Chord File(*.dat)")
             alpha = float(input_widget.inputwidget.inputalpha.text())
             self.filt_foil(alpha)
             self.do_export()
         elif ret == QtGui.QMessageBox.No:
-            self.export_foilname = QtGui.QFileDialog.getSaveFileName(None, caption = "翼型出力(速度分布平滑化無し)",
+            self.export_foilname = QtGui.QFileDialog.getSaveFileName(None, caption = u"翼型出力(速度分布平滑化無し)",
                                     directory = os.path.join(default.foildirectory,"XGAGf{generation}".format(generation =
                                     int(cfoil_widget.combobox.currentText()))), filter = "Foil Chord File(*.dat)")
             self.do_export()
@@ -1429,23 +1429,23 @@ class Foils_Default_Change(QtGui.QWidget):
 
 
         self.dialog = QtGui.QDialog(parent = None)
-        self.dialog.setWindowTitle("既定翼型設定")
+        self.dialog.setWindowTitle(u"既定翼型設定")
         self.dialog.setModal(1)
         self.dialog.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint)
         self.dialog.setFixedSize(700,400)
 
-        self.defaultdirectory = QtGui.QGroupBox("翼型保存フォルダ",parent = self.dialog)
+        self.defaultdirectory = QtGui.QGroupBox(u"翼型保存フォルダ",parent = self.dialog)
         self.defaultdirectory.setFont(font)
         self.defaultdirectory.current_dir_show = QtGui.QLabel(parent = self.defaultdirectory)
         self.defaultdirectory.current_dir_show.setText(self.foildirectory)
-        self.defaultdirectory.changebutton = QtGui.QPushButton("変更",parent = self.defaultdirectory)
+        self.defaultdirectory.changebutton = QtGui.QPushButton(u"変更",parent = self.defaultdirectory)
         self.defaultdirectory.changebutton.setFixedWidth(50)
         self.defaultdirectory.layout = QtGui.QHBoxLayout()
         self.defaultdirectory.layout.addWidget(self.defaultdirectory.current_dir_show)
         self.defaultdirectory.layout.addWidget(self.defaultdirectory.changebutton)
         self.defaultdirectory.setLayout(self.defaultdirectory.layout)
 
-        self.defaultfoil = QtGui.QGroupBox("デフォルト翼型")
+        self.defaultfoil = QtGui.QGroupBox(u"デフォルト翼型")
         self.defaultfoil.setFont(font)
 
 
@@ -1461,25 +1461,25 @@ class Foils_Default_Change(QtGui.QWidget):
         self.defaultfoil.no1.currentfoil = QtGui.QLabel(parent = self.defaultfoil.no1)
         self.defaultfoil.no1.currentfoil.setText(self.default_no1)
         self.defaultfoil.no1.currentfoil.setFont(font)
-        self.defaultfoil.no1.changebutton = QtGui.QPushButton("変更",parent = self.defaultfoil.no1)
+        self.defaultfoil.no1.changebutton = QtGui.QPushButton(u"変更",parent = self.defaultfoil.no1)
         self.defaultfoil.no1.changebutton.setFixedWidth(50)
 
         self.defaultfoil.no2.currentfoil = QtGui.QLabel(parent = self.defaultfoil.no2)
         self.defaultfoil.no2.currentfoil.setText(self.default_no2)
         self.defaultfoil.no2.currentfoil.setFont(font)
-        self.defaultfoil.no2.changebutton = QtGui.QPushButton("変更",parent = self.defaultfoil.no2)
+        self.defaultfoil.no2.changebutton = QtGui.QPushButton(u"変更",parent = self.defaultfoil.no2)
         self.defaultfoil.no2.changebutton.setFixedWidth(50)
 
         self.defaultfoil.no3.currentfoil = QtGui.QLabel(parent = self.defaultfoil.no3)
         self.defaultfoil.no3.currentfoil.setText(self.default_no3)
         self.defaultfoil.no3.currentfoil.setFont(font)
-        self.defaultfoil.no3.changebutton = QtGui.QPushButton("変更",parent = self.defaultfoil.no3)
+        self.defaultfoil.no3.changebutton = QtGui.QPushButton(u"変更",parent = self.defaultfoil.no3)
         self.defaultfoil.no3.changebutton.setFixedWidth(50)
 
         self.defaultfoil.no4.currentfoil = QtGui.QLabel(parent = self.defaultfoil.no4)
         self.defaultfoil.no4.currentfoil.setText(self.default_no4)
         self.defaultfoil.no4.currentfoil.setFont(font)
-        self.defaultfoil.no4.changebutton = QtGui.QPushButton("変更",parent = self.defaultfoil.no4)
+        self.defaultfoil.no4.changebutton = QtGui.QPushButton(u"変更",parent = self.defaultfoil.no4)
         self.defaultfoil.no4.changebutton.setFixedWidth(50)
 
         self.defaultfoil.no1.layout = QtGui.QHBoxLayout()
@@ -1524,7 +1524,7 @@ class Foils_Default_Change(QtGui.QWidget):
 class RangeChaneWidget(QtGui.QDialog):
     def __init__(self,parent = None):
         QtGui.QDialog.__init__(self, parent = parent)
-        self.setWindowTitle("遺伝子係数設定")
+        self.setWindowTitle(u"遺伝子係数設定")
 
         global coe_range,coe_start
         self.setModal(1)
@@ -1534,12 +1534,12 @@ class RangeChaneWidget(QtGui.QDialog):
         self.setFont(font)
 
 
-        self.coe1 = QtGui.QGroupBox("第1翼型混合係数範囲",parent = self)
+        self.coe1 = QtGui.QGroupBox(u"第1翼型混合係数範囲",parent = self)
         self.coe1.setFont(font)
-        self.coe1.stt_label = QtGui.QLabel("最小値",parent = self.coe1)
+        self.coe1.stt_label = QtGui.QLabel(u"最小値",parent = self.coe1)
         self.coe1.stt_edit = QtGui.QLineEdit(parent = self.coe1)
         self.coe1.stt_edit.setFixedWidth(45)
-        self.coe1.range_label = QtGui.QLabel("    最大値")
+        self.coe1.range_label = QtGui.QLabel(u"    最大値")
         self.coe1.range_edit = QtGui.QLineEdit(parent = self.coe1)
         self.coe1.range_edit.setFixedWidth(45)
         self.coe1.layout = QtGui.QHBoxLayout()
@@ -1549,11 +1549,11 @@ class RangeChaneWidget(QtGui.QDialog):
         self.coe1.layout.addWidget(self.coe1.range_edit)
         self.coe1.setLayout(self.coe1.layout)
 
-        self.coe2 = QtGui.QGroupBox("第2翼型混合係数範囲",parent = self)
-        self.coe2.stt_label = QtGui.QLabel("最小値",parent = self.coe2)
+        self.coe2 = QtGui.QGroupBox(u"第2翼型混合係数範囲",parent = self)
+        self.coe2.stt_label = QtGui.QLabel(u"最小値",parent = self.coe2)
         self.coe2.stt_edit = QtGui.QLineEdit(parent = self.coe2)
         self.coe2.stt_edit.setFixedWidth(45)
-        self.coe2.range_label = QtGui.QLabel("    最大値")
+        self.coe2.range_label = QtGui.QLabel(u"    最大値")
         self.coe2.range_edit = QtGui.QLineEdit(parent = self.coe2)
         self.coe2.range_edit.setFixedWidth(45)
         self.coe2.layout = QtGui.QHBoxLayout()
@@ -1563,11 +1563,11 @@ class RangeChaneWidget(QtGui.QDialog):
         self.coe2.layout.addWidget(self.coe2.range_edit)
         self.coe2.setLayout(self.coe2.layout)
 
-        self.coe3 = QtGui.QGroupBox("第3翼型混合係数範囲",parent = self)
-        self.coe3.stt_label = QtGui.QLabel("最小値",parent = self.coe3)
+        self.coe3 = QtGui.QGroupBox(u"第3翼型混合係数範囲",parent = self)
+        self.coe3.stt_label = QtGui.QLabel(u"最小値",parent = self.coe3)
         self.coe3.stt_edit = QtGui.QLineEdit(parent = self.coe3)
         self.coe3.stt_edit.setFixedWidth(45)
-        self.coe3.range_label = QtGui.QLabel("    最大値")
+        self.coe3.range_label = QtGui.QLabel(u"    最大値")
         self.coe3.range_edit = QtGui.QLineEdit(parent = self.coe3)
         self.coe3.range_edit.setFixedWidth(45)
         self.coe3.layout = QtGui.QHBoxLayout()
@@ -1577,11 +1577,11 @@ class RangeChaneWidget(QtGui.QDialog):
         self.coe3.layout.addWidget(self.coe3.range_edit)
         self.coe3.setLayout(self.coe3.layout)
 
-        self.coe4 = QtGui.QGroupBox("第4翼型混合係数範囲",parent = self)
-        self.coe4.stt_label = QtGui.QLabel("最小値",parent = self.coe4)
+        self.coe4 = QtGui.QGroupBox(u"第4翼型混合係数範囲",parent = self)
+        self.coe4.stt_label = QtGui.QLabel(u"最小値",parent = self.coe4)
         self.coe4.stt_edit = QtGui.QLineEdit(parent = self.coe4)
         self.coe4.stt_edit.setFixedWidth(45)
-        self.coe4.range_label = QtGui.QLabel("    最大値")
+        self.coe4.range_label = QtGui.QLabel(u"    最大値")
         self.coe4.range_edit = QtGui.QLineEdit(parent = self.coe4)
         self.coe4.range_edit.setFixedWidth(45)
         self.coe4.layout = QtGui.QHBoxLayout()
@@ -1591,11 +1591,11 @@ class RangeChaneWidget(QtGui.QDialog):
         self.coe4.layout.addWidget(self.coe4.range_edit)
         self.coe4.setLayout(self.coe4.layout)
 
-        self.coe5 = QtGui.QGroupBox("追加キャンバ 最大キャンバy座標",parent = self)
-        self.coe5.stt_label = QtGui.QLabel("最小値",parent = self.coe5)
+        self.coe5 = QtGui.QGroupBox(u"追加キャンバ 最大キャンバy座標",parent = self)
+        self.coe5.stt_label = QtGui.QLabel(u"最小値",parent = self.coe5)
         self.coe5.stt_edit = QtGui.QLineEdit(parent = self.coe5)
         self.coe5.stt_edit.setFixedWidth(45)
-        self.coe5.range_label = QtGui.QLabel("    最大値")
+        self.coe5.range_label = QtGui.QLabel(u"    最大値")
         self.coe5.range_edit = QtGui.QLineEdit(parent = self.coe5)
         self.coe5.range_edit.setFixedWidth(45)
         self.coe5.layout = QtGui.QHBoxLayout()
@@ -1605,11 +1605,11 @@ class RangeChaneWidget(QtGui.QDialog):
         self.coe5.layout.addWidget(self.coe5.range_edit)
         self.coe5.setLayout(self.coe5.layout)
 
-        self.coe6 = QtGui.QGroupBox("追加キャンバ 最大キャンバx座標",parent = self)
-        self.coe6.stt_label = QtGui.QLabel("最小値",parent = self.coe6)
+        self.coe6 = QtGui.QGroupBox(u"追加キャンバ 最大キャンバx座標",parent = self)
+        self.coe6.stt_label = QtGui.QLabel(u"最小値",parent = self.coe6)
         self.coe6.stt_edit = QtGui.QLineEdit(parent = self.coe6)
         self.coe6.stt_edit.setFixedWidth(45)
-        self.coe6.range_label = QtGui.QLabel("    最大値")
+        self.coe6.range_label = QtGui.QLabel(u"    最大値")
         self.coe6.range_edit = QtGui.QLineEdit(parent = self.coe6)
         self.coe6.range_edit.setFixedWidth(45)
         self.coe6.layout = QtGui.QHBoxLayout()
@@ -1619,11 +1619,11 @@ class RangeChaneWidget(QtGui.QDialog):
         self.coe6.layout.addWidget(self.coe6.range_edit)
         self.coe6.setLayout(self.coe6.layout)
 
-        self.coe7 = QtGui.QGroupBox("追加キャンバ 後縁角度[deg]",parent = self)
-        self.coe7.stt_label = QtGui.QLabel("最小値",parent = self.coe7)
+        self.coe7 = QtGui.QGroupBox(u"追加キャンバ 後縁角度[deg]",parent = self)
+        self.coe7.stt_label = QtGui.QLabel(u"最小値",parent = self.coe7)
         self.coe7.stt_edit = QtGui.QLineEdit(parent = self.coe7)
         self.coe7.stt_edit.setFixedWidth(45)
-        self.coe7.range_label = QtGui.QLabel("    最大値")
+        self.coe7.range_label = QtGui.QLabel(u"    最大値")
         self.coe7.range_edit = QtGui.QLineEdit(parent = self.coe7)
         self.coe7.range_edit.setFixedWidth(45)
         self.coe7.layout = QtGui.QHBoxLayout()
@@ -1633,11 +1633,11 @@ class RangeChaneWidget(QtGui.QDialog):
         self.coe7.layout.addWidget(self.coe7.range_edit)
         self.coe7.setLayout(self.coe7.layout)
 
-        self.coe8 = QtGui.QGroupBox("翼厚係数",parent = self)
-        self.coe8.stt_label = QtGui.QLabel("最小値",parent = self.coe8)
+        self.coe8 = QtGui.QGroupBox(u"翼厚係数",parent = self)
+        self.coe8.stt_label = QtGui.QLabel(u"最小値",parent = self.coe8)
         self.coe8.stt_edit = QtGui.QLineEdit(parent = self.coe8)
         self.coe8.stt_edit.setFixedWidth(45)
-        self.coe8.range_label = QtGui.QLabel("    最大値")
+        self.coe8.range_label = QtGui.QLabel(u"    最大値")
         self.coe8.range_edit = QtGui.QLineEdit(parent = self.coe8)
         self.coe8.range_edit.setFixedWidth(45)
         self.coe8.layout = QtGui.QHBoxLayout()
@@ -1647,8 +1647,8 @@ class RangeChaneWidget(QtGui.QDialog):
         self.coe8.layout.addWidget(self.coe8.range_edit)
         self.coe8.setLayout(self.coe8.layout)
 
-        self.coe9 = QtGui.QGroupBox("シェアリング",parent = self)
-        self.coe9.label = QtGui.QLabel("　シェアリング半径   ",parent = self.coe9)
+        self.coe9 = QtGui.QGroupBox(u"シェアリング",parent = self)
+        self.coe9.label = QtGui.QLabel(u"　シェアリング半径   ",parent = self.coe9)
         self.coe9.edit = QtGui.QLineEdit(parent = self.coe9)
         self.coe9.edit.setFixedWidth(45)
 
@@ -1658,9 +1658,9 @@ class RangeChaneWidget(QtGui.QDialog):
         self.coe9.setLayout(self.coe9.layout)
 
         self.buttuns = QtGui.QWidget(parent = self)
-        self.buttuns.done    = QtGui.QPushButton("適用")
-        self.buttuns.cancel  = QtGui.QPushButton("キャンセル")
-        self.buttuns.default = QtGui.QPushButton("初期設定")
+        self.buttuns.done    = QtGui.QPushButton(u"適用")
+        self.buttuns.cancel  = QtGui.QPushButton(u"キャンセル")
+        self.buttuns.default = QtGui.QPushButton(u"初期設定")
 
         self.buttuns.layout = QtGui.QHBoxLayout()
         self.buttuns.layout.addStretch(1)
@@ -1796,11 +1796,11 @@ def main():
     def update_showcoe():
         basefoilpanel.acamb.showfoil.update_figure_mult(ga.x[0:99], ga.top_addcamber[0:99])
         #係数値の提示
-        basefoilpanel.no1.coe_label.setText("混合係数 : {coe}".format(coe = round(ga.top_coefficient[0],6)))
-        basefoilpanel.no2.coe_label.setText("混合係数 : {coe}".format(coe = round(ga.top_coefficient[1],6)))
-        basefoilpanel.no3.coe_label.setText("混合係数 : {coe}".format(coe = round(ga.top_coefficient[2],6)))
-        basefoilpanel.no4.coe_label.setText("混合係数 : {coe}".format(coe = round(ga.top_coefficient[3],6)))
-        basefoilpanel.acamb.thnlabel.setText("翼厚係数 : {coe}".format(coe =round(ga.top_coefficient[7],4)))
+        basefoilpanel.no1.coe_label.setText(u"混合係数 : {coe}".format(coe = round(ga.top_coefficient[0],6)))
+        basefoilpanel.no2.coe_label.setText(u"混合係数 : {coe}".format(coe = round(ga.top_coefficient[1],6)))
+        basefoilpanel.no3.coe_label.setText(u"混合係数 : {coe}".format(coe = round(ga.top_coefficient[2],6)))
+        basefoilpanel.no4.coe_label.setText(u"混合係数 : {coe}".format(coe = round(ga.top_coefficient[3],6)))
+        basefoilpanel.acamb.thnlabel.setText(u"翼厚係数 : {coe}".format(coe =round(ga.top_coefficient[7],4)))
 
 
     def exeGA():
@@ -1809,9 +1809,9 @@ def main():
         except:
             pass
         if not basefoilpanel.no1.showfoil.filename or not basefoilpanel.no2.showfoil.filename or not basefoilpanel.no3.showfoil.filename or not basefoilpanel.no4.showfoil.filename :
-            QtGui.QMessageBox.warning(None,"翼型がありません", "基準翼型を選択して下さい\nデフォルト設定を行っていないのであれば、\nOptionタブより設定して下さい",
+            QtGui.QMessageBox.warning(None,u"翼型がありません", u"基準翼型を選択して下さい\nデフォルト設定を行っていないのであれば、\nOptionタブより設定して下さい",
                         QtGui.QMessageBox.Ok, QtGui.QMessageBox.Ok)
-            titleexeprogress.exebutton.setText("計算")
+            titleexeprogress.exebutton.setText(u"計算")
         else:
             titleexeprogress.stopbutton.setDisabled(0)
             max_generation = int(titleexeprogress.inputgeneration.text())
@@ -1827,7 +1827,7 @@ def main():
 
 
                     if ga.generation == 1:
-                        titleexeprogress.generation.setText("  世代 : 0 / ")
+                        titleexeprogress.generation.setText(u"  世代 : 0 / ")
                         n_sample = int(titleexeprogress.inputindno.text())
                         titleexeprogress.inputindno.setDisabled(1)
 
@@ -1842,7 +1842,7 @@ def main():
                         if ga.run == 0 or ga.run == 2:
                             ga.evaluete_cross(input_widget,ga.generation,titleexeprogress.savedonelabel)
                             if numpy.min(ga.Fcon) < 0:
-                                QtGui.QMessageBox.warning(None,"Fcon error", "評価関数の値が負になっています。評価関数の係数を調節して下さい",
+                                QtGui.QMessageBox.warning(None,u"Fcon error", u"評価関数の値が負になっています。評価関数の係数を調節して下さい",
                                             QtGui.QMessageBox.Ok, QtGui.QMessageBox.Ok)
                                 stopGA()
                             else:
@@ -1850,7 +1850,7 @@ def main():
                                 dataplotwidget.update_dataplot(ga,ga.generation)
                                 update_showcoe()
                     else:
-                        titleexeprogress.generation.setText("世代 : {fgene} / ".format(fgene = ga.generation-1))
+                        titleexeprogress.generation.setText(u"世代 : {fgene} / ".format(fgene = ga.generation-1))
                         ga.gene2coeficient()
                         ga.coeficient2foil()
                         ga.run = 2
@@ -1867,8 +1867,8 @@ def main():
                             cfoil_widget.combobox.addItem(str(combo_n))
                     max_generation = int(titleexeprogress.inputgeneration.text())
                     if ga.generation == max_generation:
-                        titleexeprogress.generation.setText("世代 : {fgene} / ".format(fgene = ga.generation))
-                        titleexeprogress.stopbutton.setText("続行")
+                        titleexeprogress.generation.setText(u"世代 : {fgene} / ".format(fgene = ga.generation))
+                        titleexeprogress.stopbutton.setText(u"続行")
                         ga.run = 1
                         ga.generation += 1
                         cfoil_widget.rollbackbutton.setEnabled(True)
@@ -1882,19 +1882,19 @@ def main():
 
 
     def startGA():
-        ret = QtGui.QMessageBox.question(None,"GA　実行", "世代:0から最適化計算を実行します\nよろしいですか？",
+        ret = QtGui.QMessageBox.question(None,u"GA　実行", u"世代:0から最適化計算を実行します\nよろしいですか？",
                         QtGui.QMessageBox.Yes | QtGui.QMessageBox.No ,QtGui.QMessageBox.Yes)
         if ret == QtGui.QMessageBox.Yes:
             ga.generation = 0
             ga.run = 0
             ga.save_top = [0]
             ga.save_topValue = [0]
-            titleexeprogress.exebutton.setText("再計算")
+            titleexeprogress.exebutton.setText(u"再計算")
             font = QtGui.QFont()
             font.setPointSize(12)
             titleexeprogress.exebutton.setFont(font)
 
-            titleexeprogress.stopbutton.setText("一時停止")
+            titleexeprogress.stopbutton.setText(u"一時停止")
             titleexeprogress.stopbutton.setFont(font)
             cfoil_widget.rollbackbutton.setEnabled(False)
             cfoil_widget.outputbutton.setEnabled(False)
@@ -1905,21 +1905,21 @@ def main():
     def stopGA():
         if ga.run == 0 or ga.run == 2 :
             ga.run = 1
-            titleexeprogress.stopbutton.setText("続行")
+            titleexeprogress.stopbutton.setText(u"続行")
             cfoil_widget.rollbackbutton.setEnabled(True)
             cfoil_widget.outputbutton.setEnabled(True)
             cfoil_widget.combobox.setEnabled(True)
         elif ga.generation < int(titleexeprogress.inputgeneration.text())+1:
             ga.run = 2
             ga.generation -= 1
-            titleexeprogress.stopbutton.setText("一時停止")
+            titleexeprogress.stopbutton.setText(u"一時停止")
             cfoil_widget.rollbackbutton.setEnabled(False)
             cfoil_widget.outputbutton.setEnabled(False)
             cfoil_widget.combobox.setEnabled(False)
             exeGA()
 
         else:
-            QtGui.QMessageBox.warning(None,"計算が一時停止されました", "世代が上限に達しています",
+            QtGui.QMessageBox.warning(None,u"計算が一時停止されました", u"世代が上限に達しています",
                         QtGui.QMessageBox.Ok, QtGui.QMessageBox.Ok)
 
 
@@ -1935,20 +1935,20 @@ def main():
         except:
             pass
         basefoilpanel.no1.showfoil.compute_initial_figure2(default.default_no1)
-        basefoilpanel.no1.setTitle("第1翼型 - {foilname}".format(foilname = os.path.basename(basefoilpanel.no1.showfoil.filename)))
+        basefoilpanel.no1.setTitle(u"第1翼型 - {foilname}".format(foilname = os.path.basename(basefoilpanel.no1.showfoil.filename)))
         basefoilpanel.no2.showfoil.compute_initial_figure2(default.default_no2)
-        basefoilpanel.no2.setTitle("第2翼型 - {foilname}".format(foilname = os.path.basename(basefoilpanel.no2.showfoil.filename)))
+        basefoilpanel.no2.setTitle(u"第2翼型 - {foilname}".format(foilname = os.path.basename(basefoilpanel.no2.showfoil.filename)))
         basefoilpanel.no3.showfoil.compute_initial_figure2(default.default_no3)
-        basefoilpanel.no3.setTitle("第3翼型 - {foilname}".format(foilname = os.path.basename(basefoilpanel.no3.showfoil.filename)))
+        basefoilpanel.no3.setTitle(u"第3翼型 - {foilname}".format(foilname = os.path.basename(basefoilpanel.no3.showfoil.filename)))
         basefoilpanel.no4.showfoil.compute_initial_figure2(default.default_no4)
-        basefoilpanel.no4.setTitle("第4翼型 - {foilname}".format(foilname = os.path.basename(basefoilpanel.no4.showfoil.filename)))
+        basefoilpanel.no4.setTitle(u"第4翼型 - {foilname}".format(foilname = os.path.basename(basefoilpanel.no4.showfoil.filename)))
 
         ga.save_top = [0]
         ga.save_topValue = [0]
         ga.run = 0
 
-        titleexeprogress.exebutton.setText("計算")
-        titleexeprogress.stopbutton.setText("一時停止")
+        titleexeprogress.exebutton.setText(u"計算")
+        titleexeprogress.stopbutton.setText(u"一時停止")
 
         input_widget.inputwidget.inputalpha.setText('4')
         input_widget.inputwidget.inputCL.setText('1.2')
@@ -1970,16 +1970,16 @@ def main():
         cfoil_widget.combobox.setEnabled(False)
 
         titleexeprogress.progressbar.reset()
-        cfoil_widget.CLlabel.setText("揚力係数CL : {CL}    抗力係数Cd(*10000) : {Cd}    揚抗比CL/Cd : {CLCd}    モーメント係数Cm : {Cm}     翼厚 : {thn:4}".format(CL = "NaN", Cd = "NaN", CLCd = "NaN",Cm = "Nan", thn = "NaN"))
+        cfoil_widget.CLlabel.setText(u"揚力係数CL : {CL}    抗力係数Cd(*10000) : {Cd}    揚抗比CL/Cd : {CLCd}    モーメント係数Cm : {Cm}     翼厚 : {thn:4}".format(CL = "NaN", Cd = "NaN", CLCd = "NaN",Cm = "Nan", thn = "NaN"))
         titleexeprogress.progressbar.reset()
         global projectname
         projectname = ""
         main_window.setWindowTitle("XGAG")
-        titleexeprogress.savedonelabel.setText("新規プロジェクトを開始しました")
+        titleexeprogress.savedonelabel.setText(u"新規プロジェクトを開始しました")
 
 
     def rollback():
-        ret = QtGui.QMessageBox.question(None,"巻き戻し", "世代:{generation}を最も優れた翼型として登録します\n(評価関数が最大値をとった翼型は登録され、毎世代投入されます)\nよろしいですか？".format(generation = int(cfoil_widget.combobox.currentText())),
+        ret = QtGui.QMessageBox.question(None,u"巻き戻し", u"世代:{generation}を最も優れた翼型として登録します\n(評価関数が最大値をとった翼型は登録され、毎世代投入されます)\nよろしいですか？".format(generation = int(cfoil_widget.combobox.currentText())),
                         QtGui.QMessageBox.Yes | QtGui.QMessageBox.No,QtGui.QMessageBox.Yes)
         if ret == QtGui.QMessageBox.Yes:
             rollbacgeneration = int(cfoil_widget.combobox.currentText())
@@ -1991,14 +1991,14 @@ def main():
         export.gene2foil(ga,int(cfoil_widget.combobox.currentText()))
         export.dialog(cfoil_widget,input_widget,default)
         if export.exfail == 0:
-            titleexeprogress.savedonelabel.setText("世代:{gene}の翼型を出力しました".format(gene = cfoil_widget.combobox.currentText()))
+            titleexeprogress.savedonelabel.setText(u"世代:{gene}の翼型を出力しました".format(gene = cfoil_widget.combobox.currentText()))
         else:
-            titleexeprogress.savedonelabel.setText("翼型出力を中止しました")
+            titleexeprogress.savedonelabel.setText(u"翼型出力を中止しました")
 
     def save_file():
         fid = open(projectname,"w")
         writecsv = csv.writer(fid,lineterminator = "\n")
-        writecsv.writerow(["#! XGAG 状況保存"])
+        writecsv.writerow([u"#! XGAG 状況保存"])
         writecsv.writerows(ga.gene2)
 
         writecsv = csv.writer(fid,lineterminator = "\n")
@@ -2110,7 +2110,7 @@ def main():
         writecsv.writerow(["---"])
 
         fid.close()
-        titleexeprogress.savedonelabel.setText("セーブが完了しました")
+        titleexeprogress.savedonelabel.setText(u"セーブが完了しました")
         main_window.setWindowTitle("XGAG -{projectname}".format(projectname = os.path.basename(projectname)))
 
     def open_file():
@@ -2247,28 +2247,28 @@ def main():
 
             basefoilpanel.no1.showfoil.filename = csv_allfile[read_i][0]
             basefoilpanel.no1.showfoil.update_figure2()
-            basefoilpanel.no1.setTitle("第1翼型 - {foilname}".format(foilname = os.path.basename(basefoilpanel.no1.showfoil.filename)))
+            basefoilpanel.no1.setTitle(u"第1翼型 - {foilname}".format(foilname = os.path.basename(basefoilpanel.no1.showfoil.filename)))
             read_i += 1
 
             basefoilpanel.no2.showfoil.filename = csv_allfile[read_i][0]
             basefoilpanel.no2.showfoil.update_figure2()
-            basefoilpanel.no2.setTitle("第2翼型 - {foilname}".format(foilname = os.path.basename(basefoilpanel.no2.showfoil.filename)))
+            basefoilpanel.no2.setTitle(u"第2翼型 - {foilname}".format(foilname = os.path.basename(basefoilpanel.no2.showfoil.filename)))
             read_i += 1
 
             basefoilpanel.no3.showfoil.filename = csv_allfile[read_i][0]
             basefoilpanel.no3.showfoil.update_figure2()
-            basefoilpanel.no3.setTitle("第3翼型 - {foilname}".format(foilname = os.path.basename(basefoilpanel.no3.showfoil.filename)))
+            basefoilpanel.no3.setTitle(u"第3翼型 - {foilname}".format(foilname = os.path.basename(basefoilpanel.no3.showfoil.filename)))
             read_i += 1
 
             basefoilpanel.no4.showfoil.filename = csv_allfile[read_i][0]
             basefoilpanel.no4.showfoil.update_figure2()
-            basefoilpanel.no4.setTitle("第4翼型 - {foilname}".format(foilname = os.path.basename(basefoilpanel.no4.showfoil.filename)))
+            basefoilpanel.no4.setTitle(u"第4翼型 - {foilname}".format(foilname = os.path.basename(basefoilpanel.no4.showfoil.filename)))
             read_i += 1
 
             #リストより各設計パラメタ、評価関数 generation 抽出
             read_i += 1
             ga.generation = int(csv_allfile[read_i][0])
-            titleexeprogress.generation.setText("世代 : {fgene} / ".format(fgene = ga.generation-1))
+            titleexeprogress.generation.setText(u"世代 : {fgene} / ".format(fgene = ga.generation-1))
             read_i += 1
             n_sample = int(csv_allfile[read_i][0])
 
@@ -2351,8 +2351,8 @@ def main():
 
             #その他諸々の設定
             ga.run = 1
-            titleexeprogress.stopbutton.setText("続行")
-            titleexeprogress.exebutton.setText("再計算")
+            titleexeprogress.stopbutton.setText(u"続行")
+            titleexeprogress.exebutton.setText(u"再計算")
             titleexeprogress.stopbutton.setEnabled(True)
             titleexeprogress.progressbar.reset()
             cfoil_widget.rollbackbutton.setEnabled(True)
@@ -2368,7 +2368,7 @@ def main():
                 cfoil_widget.combobox.addItem(str(combo_n))
 
             main_window.setWindowTitle("XGAG -{projectname}".format(projectname = os.path.basename(projectname)))
-            titleexeprogress.savedonelabel.setText("ロードが完了しました")
+            titleexeprogress.savedonelabel.setText(u"ロードが完了しました")
 
     def about_XGAG():
         QtGui.QMessageBox.about(None,"About XGAG","".join(["<h2>XGAG 2.00</h2>",
@@ -2404,13 +2404,13 @@ def main():
         if ga.run != 2:
             open_file()
         else:
-            titleexeprogress.savedonelabel.setText("最適化をストップしてからオープンして下さい")
+            titleexeprogress.savedonelabel.setText(u"最適化をストップしてからオープンして下さい")
 
     def new():
         if ga.run != 2 :
             newproject()
         else:
-            titleexeprogress.savedonelabel.setText("最適化をストップしてから新規プロジェクトを開始して下さい")
+            titleexeprogress.savedonelabel.setText(u"最適化をストップしてから新規プロジェクトを開始して下さい")
 
     qApp = QtGui.QApplication(sys.argv)
 
@@ -2483,14 +2483,14 @@ def main():
 
     #メニューバーの作成
     menubar = main_window.menuBar()
-    filemenu = menubar.addMenu("ファイル")
-    file_new = filemenu.addAction("新規")
+    filemenu = menubar.addMenu(u"ファイル")
+    file_new = filemenu.addAction(u"新規")
     file_new.setShortcut('Ctrl+N')
-    file_open = filemenu.addAction("開く")
+    file_open = filemenu.addAction(u"開く")
     file_open.setShortcut('Ctrl+O')
-    file_save = filemenu.addAction("保存")
+    file_save = filemenu.addAction(u"保存")
     file_save.setShortcut('Ctrl+S')
-    file_saveas = filemenu.addAction("名前を付けて保存")
+    file_saveas = filemenu.addAction(u"名前を付けて保存")
     main_window.connect(file_new,QtCore.SIGNAL('triggered()'),new)
     main_window.connect(file_save,QtCore.SIGNAL('triggered()'),save)
     main_window.connect(file_saveas,QtCore.SIGNAL('triggered()'),save_as)
@@ -2502,9 +2502,9 @@ def main():
     statusbar.addWidget(titleexeprogress.savedonelabel)
     main_window.setStatusBar(statusbar)
 
-    optionmenu = menubar.addMenu("設定")
-    defaultfoils = optionmenu.addAction("&既定翼型設定")
-    defaultrange = optionmenu.addAction("&遺伝子係数設定")
+    optionmenu = menubar.addMenu(u"設定")
+    defaultfoils = optionmenu.addAction(u"&既定翼型設定")
+    defaultrange = optionmenu.addAction(u"&遺伝子係数設定")
     main_window.connect(defaultfoils,QtCore.SIGNAL('triggered()'),default.dialog.activateWindow)
     main_window.connect(defaultfoils,QtCore.SIGNAL('triggered()'),default.dialog.show)
     main_window.connect(defaultrange,QtCore.SIGNAL('triggered()'),rangechangewidget.activateWindow)
@@ -2512,8 +2512,8 @@ def main():
 
 
     aboutmenu = menubar.addMenu("about")
-    about_XGAGmenu = aboutmenu.addAction("XGAGについて")
-    about_qt = aboutmenu.addAction("Qtについて")
+    about_XGAGmenu = aboutmenu.addAction(u"XGAGについて")
+    about_qt = aboutmenu.addAction(u"Qtについて")
 
     main_window.connect(about_qt,QtCore.SIGNAL('triggered()'),qApp.aboutQt)
     main_window.connect(about_XGAGmenu,QtCore.SIGNAL('triggered()'),about_XGAG)
