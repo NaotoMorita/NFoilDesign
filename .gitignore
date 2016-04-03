@@ -216,3 +216,6 @@ TubdotGag.py
 
 #Mr Developer
 .mr.developer.cfg
+
+#build
+setup.py
