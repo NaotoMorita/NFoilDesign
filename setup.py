@@ -10,8 +10,8 @@ includes = ["PyQt4.QtCore", "PyQt4.QtGui", "re","binstr","numpy","matplotlib.bac
 includefiles =["xfoil.exe","FOILS"]
 #setup
 setup(
-        name = "XGAG",
+        name = "Tubdotgag",
         version = "2.02",
         options = {"build_exe": {"includes": includes,"include_files":includefiles}},
-        executables = [Executable("XGAG.py", base=base)],
+        executables = [Executable("TubdotGag.py", base=base)],
 )

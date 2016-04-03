@@ -1,12 +1,16 @@
 ﻿#-------------------------------------------------------------------------------
-# Name:        module1
-# Purpose:
+# Name:        dataset_foils
+# Purpose:      Survey your favorite geometries of foil for TubdotGag
 #
 # Author:      NaotoMORITA
 #
 # Created:     13/07/2014
 # Copyright:   (c) NaotoMORITA 2014
-# Licence:     <your licence>
+# Licence:         TubdotGag and dataset_foils
+#                  Copyright (C) 2014 Naoto Morita
+#                  XGAG is without any warranty. This program has been developed excusively for the design of aerowings.
+#                  Any other usage is strongly disapproved.
+#                  Windmize distributed under the GNU General Public Licence
 #-------------------------------------------------------------------------------
 
 import numpy, csv, binstr
