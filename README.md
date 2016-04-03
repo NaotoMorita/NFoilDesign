@@ -19,5 +19,5 @@ XGAG
 Copyright (C) 2013 Naoto Morita
 XGAG is without any warranty. This program has been developed excusively for the design of aerowings.
 Any other usage is strongly disapproved.
-Windmize distributed under the GNU General Public Licence
+XGAG distributed under the GNU General Public Licence
 ---
