@@ -26,10 +26,8 @@ def normalize_foil(foilchord):
             fid2.write(" {x_ele}  {y_ele} \n".format(x_ele = x[i], y_ele = y[i]))
         fid2.close()
         foil = "foil.foil"
-        startupinfo = subprocess.STARTUPINFO()
-        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
 
-        ps = subprocess.Popen(['xfoil.exe'],stdin=subprocess.PIPE,stdout=None,stderr=None,startupinfo=startupinfo)
+        ps = subprocess.Popen(['xfoil'],stdin=subprocess.PIPE,stdout=None,stderr=None,shell=True)
         pipe = bytes("\nplop\n g\n\n norm\n load {load} \n pane\n GDES\n DERO\n eXec\n \n ppar \n n 300 \n \n \n save foil.foil\n y \n \n quit \n" .format(load=foil),"ascii")
         res = ps.communicate(pipe)
 
