@@ -8,11 +8,11 @@ XGAG  -XFOIL Genetic Algorithm Graphical user interface airfoil design tool-
 GUIツールですので、プログラムが分からなくても、誰でも使うことができます。
 
 使い方やその他情報は私のブログ
-http://d.hatena.ne.jp/yuukivel/
+https://yuukivel.hatenablog.com
 を参照して下さい。このサイトでは.exeファイルも公開しています。
 
 exeファイル公開と使い方はこちらのページです。
-http://d.hatena.ne.jp/yuukivel/20131130/1385815596
+https://yuukivel.hatenablog.com/entry/2019/04/09/113229
 
 ---
 XGAG
